@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:project_mobile_app/authentication/login.dart';
 import 'package:project_mobile_app/globals.dart' as globals;
 
-const double padding = 10;
-
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -21,19 +19,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Center(
-          child: Text("Register"),
+          child: Text("Registration"),
         ),
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(globals.padding),
-            child: ElevatedButton(
-              onPressed: () => Navigator.pushReplacement(context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen())),
-              child: const Text("Log in"),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.all(globals.padding),
             child: TextField(
@@ -77,13 +67,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(globals.padding),
-            child: ElevatedButton(
-              onPressed: () {},
-              child: const Text("Register"),
-            ),
-          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(globals.padding),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginScreen())),
+                  child: const Text("Log in"),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(globals.padding),
+                child: ElevatedButton(
+                  onPressed: () {},
+                  child: const Text("Register"),
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );

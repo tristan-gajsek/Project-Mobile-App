@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/app/profile.dart';
-import 'package:project_mobile_app/authentication/register.dart';
+import 'package:project_mobile_app/authentication/registration.dart';
 import 'package:project_mobile_app/globals.dart' as globals;
 
 class LoginScreen extends StatefulWidget {
@@ -24,16 +24,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(globals.padding),
-            child: ElevatedButton(
-              onPressed: () => Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const RegisterScreen())),
-              child: const Text("Register"),
-            ),
-          ),
           Padding(
             padding: const EdgeInsets.all(globals.padding),
             child: TextField(
@@ -63,17 +53,32 @@ class _LoginScreenState extends State<LoginScreen> {
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(globals.padding),
-            child: ElevatedButton(
-              onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => ProfileScreen(
-                          email: "foo@bar.com", username: _username))),
-              child: const Text("Log in"),
-            ),
-          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(globals.padding),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const RegisterScreen())),
+                  child: const Text("Register"),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(globals.padding),
+                child: ElevatedButton(
+                  onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ProfileScreen(
+                              email: "foo@bar.com", username: _username))),
+                  child: const Text("Log in"),
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
