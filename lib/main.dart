@@ -17,6 +17,8 @@ class App extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
+      // theme: catppuccinTheme(catppuccin.latte),
+      // darkTheme: catppuccinTheme(catppuccin.mocha),
       home: const LoginScreen(),
     );
   }
