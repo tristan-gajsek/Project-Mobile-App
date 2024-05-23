@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
-const double padding = 10;
+import 'package:project_mobile_app/app/app_bar.dart';
+import 'package:project_mobile_app/globals.dart' as globals;
 
 class ProfileScreen extends StatefulWidget {
   final String email;
@@ -16,13 +16,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Center(
-          child: Text("Profile"),
-        ),
+      appBar: const PreferredSize(
+        preferredSize: Size.fromHeight(kToolbarHeight),
+        child: MainAppBar(title: 'Profile'),
       ),
       body: ListView(
-        padding: const EdgeInsets.all(padding),
+        padding: const EdgeInsets.all(globals.padding),
         children: [
           Card(
             child: ListTile(
