@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/app/profile.dart';
+import 'package:project_mobile_app/authentication/button.dart';
 import 'package:project_mobile_app/authentication/registration.dart';
-import 'package:project_mobile_app/globals.dart' as globals;
+import 'package:project_mobile_app/authentication/text_field.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,8 +12,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String _username = "";
-  String _password = "";
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -24,61 +25,37 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(globals.padding),
-            child: TextField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: "Username",
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _username = value;
-                });
-              },
-            ),
+          AuthenticationTextField(
+            controller: usernameController,
+            labelText: "Username",
+            obscureText: false,
           ),
-          Padding(
-            padding: const EdgeInsets.all(globals.padding),
-            child: TextField(
-              obscureText: true,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: "Password",
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _password = value;
-                });
-              },
-            ),
+          AuthenticationTextField(
+            controller: passwordController,
+            labelText: "Password",
+            obscureText: true,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(globals.padding),
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const RegisterScreen())),
-                  child: const Text("Register"),
+          GestureDetector(
+            onTap: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const RegisterScreen(),
+              ),
+            ),
+            child: const Text("Don't have an account?"),
+          ),
+          AuthenticationButton(
+            text: "Log in",
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfileScreen(
+                  email: "foo@bar.com",
+                  username: usernameController.text,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(globals.padding),
-                child: ElevatedButton(
-                  onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ProfileScreen(
-                              email: "foo@bar.com", username: _username))),
-                  child: const Text("Log in"),
-                ),
-              ),
-            ],
-          )
+            ),
+          ),
         ],
       ),
     );

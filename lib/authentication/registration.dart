@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:project_mobile_app/app/profile.dart';
+import 'package:project_mobile_app/authentication/button.dart';
 import 'package:project_mobile_app/authentication/login.dart';
-import 'package:project_mobile_app/globals.dart' as globals;
+import 'package:project_mobile_app/authentication/text_field.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -10,9 +12,9 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  String _email = "";
-  String _username = "";
-  String _password = "";
+  final emailController = TextEditingController();
+  final usernameController = TextEditingController();
+  final passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -24,71 +26,42 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(globals.padding),
-            child: TextField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: "E-mail",
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _email = value;
-                });
-              },
-            ),
+          AuthenticationTextField(
+            controller: emailController,
+            labelText: "E-mail",
+            obscureText: false,
           ),
-          Padding(
-            padding: const EdgeInsets.all(globals.padding),
-            child: TextField(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: "Username",
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _username = value;
-                });
-              },
-            ),
+          AuthenticationTextField(
+            controller: usernameController,
+            labelText: "Username",
+            obscureText: false,
           ),
-          Padding(
-            padding: const EdgeInsets.all(globals.padding),
-            child: TextField(
-              obscureText: true,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: "Password",
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _password = value;
-                });
-              },
-            ),
+          AuthenticationTextField(
+            controller: passwordController,
+            labelText: "Password",
+            obscureText: true,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(globals.padding),
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const LoginScreen())),
-                  child: const Text("Log in"),
+          GestureDetector(
+            onTap: () => Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const LoginScreen(),
+              ),
+            ),
+            child: const Text("Already have an account?"),
+          ),
+          AuthenticationButton(
+            text: "Register",
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfileScreen(
+                  email: emailController.text,
+                  username: usernameController.text,
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.all(globals.padding),
-                child: ElevatedButton(
-                  onPressed: () {},
-                  child: const Text("Register"),
-                ),
-              ),
-            ],
-          )
+            ),
+          ),
         ],
       ),
     );
