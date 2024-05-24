@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:project_mobile_app/app/app_bar.dart';
+import 'package:project_mobile_app/components/app_bar.dart';
+import 'package:project_mobile_app/utils/location.dart' as location;
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -11,6 +13,24 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
+  final mapController = MapController();
+
+  @override
+  void initState() {
+    super.initState();
+    _getPosition();
+  }
+
+  Future<void> _getPosition() async {
+    Position position = await location.getPosition();
+    setState(() {
+      mapController.move(
+        LatLng(position.latitude, position.longitude),
+        mapController.camera.zoom,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -19,9 +39,8 @@ class _MapScreenState extends State<MapScreen> {
         child: MainAppBar(title: 'Map'),
       ),
       body: FlutterMap(
-        options: const MapOptions(
-          initialCenter: LatLng(46.369339, 15.391280),
-        ),
+        mapController: mapController,
+        options: const MapOptions(),
         children: [
           openStreetMapTileLayer,
         ],

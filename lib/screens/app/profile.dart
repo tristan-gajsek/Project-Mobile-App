@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:project_mobile_app/app/app_bar.dart';
+import 'package:project_mobile_app/components/app_bar.dart';
 import 'package:project_mobile_app/globals.dart' as globals;
 
 class ProfileScreen extends StatefulWidget {

@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:project_mobile_app/app/profile.dart';
-import 'package:project_mobile_app/authentication/button.dart';
-import 'package:project_mobile_app/authentication/registration.dart';
-import 'package:project_mobile_app/authentication/text_field.dart';
+import 'package:project_mobile_app/screens/app/profile.dart';
+import 'package:project_mobile_app/screens/authentication/login.dart';
+import 'package:project_mobile_app/components/button.dart';
+import 'package:project_mobile_app/components/text_field.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
+  final emailController = TextEditingController();
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -20,17 +21,22 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Center(
-          child: Text("Login"),
+          child: Text("Registration"),
         ),
       ),
       body: Column(
         children: [
-          AuthenticationTextField(
+          CustomTextField(
+            controller: emailController,
+            labelText: "E-mail",
+            obscureText: false,
+          ),
+          CustomTextField(
             controller: usernameController,
             labelText: "Username",
             obscureText: false,
           ),
-          AuthenticationTextField(
+          CustomTextField(
             controller: passwordController,
             labelText: "Password",
             obscureText: true,
@@ -39,18 +45,18 @@ class _LoginScreenState extends State<LoginScreen> {
             onTap: () => Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => const RegisterScreen(),
+                builder: (context) => const LoginScreen(),
               ),
             ),
-            child: const Text("Don't have an account?"),
+            child: const Text("Already have an account?"),
           ),
-          AuthenticationButton(
-            text: "Log in",
+          CustomButton(
+            text: "Register",
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => ProfileScreen(
-                  email: "foo@bar.com",
+                  email: emailController.text,
                   username: usernameController.text,
                 ),
               ),

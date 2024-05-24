@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/globals.dart' as globals;
 
-class AuthenticationButton extends StatelessWidget {
-  const AuthenticationButton({super.key, required this.text, required this.onPressed});
+class CustomButton extends StatelessWidget {
+  const CustomButton({super.key, required this.text, required this.onPressed});
 
   final String text;
   final Function()? onPressed;

@@ -38,6 +38,7 @@ dependencies:
   catppuccin_flutter: ^1.0.0
   flutter_map: ^6.0.0
   latlong2: ^0.9.1
+  geolocator: ^7.0.3 # Don't change this unless you know it won't cause build issues
 
 dev_dependencies:
   flutter_test:

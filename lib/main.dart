@@ -1,6 +1,6 @@
 import 'package:catppuccin_flutter/catppuccin_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:project_mobile_app/authentication/login.dart';
+import 'package:project_mobile_app/screens/authentication/login.dart';
 import 'package:project_mobile_app/theme.dart';
 
 void main() {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/globals.dart' as globals;
 
-class AuthenticationTextField extends StatelessWidget {
-  const AuthenticationTextField(
+class CustomTextField extends StatelessWidget {
+  const CustomTextField(
       {super.key,
       required this.controller,
       required this.labelText,

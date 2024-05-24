@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:project_mobile_app/app/map.dart';
-import 'package:project_mobile_app/app/profile.dart';
+import 'package:project_mobile_app/screens/app/map.dart';
+import 'package:project_mobile_app/screens/app/profile.dart';
 
 class MainAppBar extends StatefulWidget {
   final String title;
@@ -28,14 +28,20 @@ class _MainAppBarState extends State<MainAppBar> {
             switch (result) {
               case 'Profile':
                 Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            const ProfileScreen(email: "", username: "")));
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        const ProfileScreen(email: "", username: ""),
+                  ),
+                );
                 break;
               case 'Map':
-                Navigator.pushReplacement(context,
-                    MaterialPageRoute(builder: (context) => const MapScreen()));
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MapScreen(),
+                  ),
+                );
                 break;
             }
           },
