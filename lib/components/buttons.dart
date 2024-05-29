@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:project_mobile_app/globals.dart' as globals;
 
 class CustomButton extends StatelessWidget {
   const CustomButton({super.key, required this.text, required this.onPressed});
@@ -10,7 +9,7 @@ class CustomButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(globals.padding),
+      padding: const EdgeInsets.all(10),
       child: ElevatedButton(
         onPressed: onPressed,
         child: Text(text),
