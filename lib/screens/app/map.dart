@@ -25,14 +25,16 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _startPositionStream();
-    var sharedState = Provider.of<SharedState>(context);
 
-    if (sharedState.currentLocation != null) {
-      _mapController.move(
-        sharedState.currentLocation!,
-        _mapController.camera.zoom,
-      );
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      var sharedState = Provider.of<SharedState>(context, listen: false);
+      if (sharedState.currentLocation != null) {
+        _mapController.move(
+          sharedState.currentLocation!,
+          _mapController.camera.zoom,
+        );
+      }
+    });
   }
 
   @override
@@ -42,14 +44,13 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _startPositionStream() {
-    _positionStream =
-        Geolocator.getPositionStream().listen((Position position) {
+    _positionStream = Geolocator.getPositionStream().listen((Position pos) {
       var sharedState = Provider.of<SharedState>(context, listen: false);
 
       setState(() {
         sharedState.currentLocation = LatLng(
-          position.latitude,
-          position.longitude,
+          pos.latitude,
+          pos.longitude,
         );
 
         if (!_foundFirstLocation) {

@@ -3,6 +3,8 @@ import 'package:project_mobile_app/screens/app/profile.dart';
 import 'package:project_mobile_app/screens/authentication/registration.dart';
 import 'package:project_mobile_app/components/buttons.dart';
 import 'package:project_mobile_app/components/text_field.dart';
+import 'package:project_mobile_app/state.dart';
+import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,15 +48,21 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           CustomButton(
             text: "Log in",
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProfileScreen(
-                  email: "foo@bar.com",
-                  username: usernameController.text,
+            onPressed: () {
+              var sharedState = Provider.of<SharedState>(
+                context,
+                listen: false,
+              );
+              sharedState.email = "foo@bar.com";
+              sharedState.username = usernameController.text;
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfileScreen(),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),

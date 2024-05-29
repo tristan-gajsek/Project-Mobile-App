@@ -10,10 +10,7 @@ import 'package:project_mobile_app/state.dart';
 import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final String email;
-  final String username;
-
-  const ProfileScreen({super.key, required this.email, required this.username});
+  const ProfileScreen({super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -75,14 +72,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: ListTile(
                     leading: const Icon(Icons.email),
                     title: const Text("E-mail"),
-                    subtitle: Text(widget.email),
+                    subtitle: Text(sharedState.email ?? "Unknown"),
                   ),
                 ),
                 Card(
                   child: ListTile(
                     leading: const Icon(Icons.person),
                     title: const Text("Username"),
-                    subtitle: Text(widget.username),
+                    subtitle: Text(sharedState.username ?? "Unknown"),
                   ),
                 ),
               ],
@@ -113,6 +110,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               var decibels = snapshot.data!.decibels!;
               if (decibels > (sharedState.maxDecibels ?? 0)) {
                 sharedState.maxDecibels = decibels;
+                sharedState.maxDecibelsLocation = sharedState.currentLocation;
               }
 
               return Text(
