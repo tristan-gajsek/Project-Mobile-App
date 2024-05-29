@@ -33,7 +33,8 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   void _startPositionStream() {
-    _positionStream = Geolocator.getPositionStream().listen((Position position) {
+    _positionStream =
+        Geolocator.getPositionStream().listen((Position position) {
       setState(() {
         _currentPosition = LatLng(position.latitude, position.longitude);
         if (!_foundFirstLocation) {
