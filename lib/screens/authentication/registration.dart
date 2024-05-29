@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/screens/app/profile.dart';
 import 'package:project_mobile_app/screens/authentication/login.dart';
-import 'package:project_mobile_app/components/button.dart';
+import 'package:project_mobile_app/components/buttons.dart';
 import 'package:project_mobile_app/components/text_field.dart';
 
 class RegisterScreen extends StatefulWidget {

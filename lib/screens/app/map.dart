@@ -1,10 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:project_mobile_app/components/app_bar.dart';
 import 'package:project_mobile_app/components/buttons.dart';
-import 'package:project_mobile_app/utils/location.dart' as location;
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -14,30 +15,35 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final mapController = MapController();
-  LatLng? currentPosition;
-  bool isFetchingPosition = false;
+  final _mapController = MapController();
+  StreamSubscription<Position>? _positionStream;
+  LatLng? _currentPosition;
+  bool _foundFirstLocation = false;
 
   @override
   void initState() {
     super.initState();
-    _getPosition();
+    _startPositionStream();
   }
 
-  Future<void> _getPosition() async {
-    setState(() {
-      isFetchingPosition = true;
-    });
+  @override
+  void dispose() {
+    _positionStream?.cancel();
+    super.dispose();
+  }
 
-    Position position = await location.getPosition();
-
-    setState(() {
-      currentPosition = LatLng(position.latitude, position.longitude);
-      mapController.move(
-        currentPosition!,
-        mapController.camera.zoom,
-      );
-      isFetchingPosition = false;
+  void _startPositionStream() {
+    _positionStream = Geolocator.getPositionStream().listen((Position position) {
+      setState(() {
+        _currentPosition = LatLng(position.latitude, position.longitude);
+        if (!_foundFirstLocation) {
+          _mapController.move(
+            _currentPosition!,
+            _mapController.camera.zoom,
+          );
+          _foundFirstLocation = true;
+        }
+      });
     });
   }
 
@@ -52,20 +58,26 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           Expanded(
             child: FlutterMap(
-              mapController: mapController,
+              mapController: _mapController,
               options: mapOptions,
               children: [
                 openStreetMapTileLayer,
                 circleLayer,
-                markerLayer(currentPosition)
+                markerLayer(_currentPosition)
               ],
             ),
           ),
           WideButton(
-            text:
-                isFetchingPosition ? "Fetching position..." : "Reset Position",
-            onPressed: isFetchingPosition ? null : _getPosition,
+            text: "Center Map",
+            onPressed: _currentPosition == null
+                ? null
+                : () => _mapController.move(
+                      _currentPosition!,
+                      _mapController.camera.zoom,
+                    ),
           ),
+          // Text("Latitude: ${_currentPosition?.latitude}"),
+          // Text("Longitude: ${_currentPosition?.longitude}"),
         ],
       ),
     );
