@@ -104,6 +104,8 @@ MarkerLayer markerLayer(LatLng? currentPosition) {
     markers: [
       Marker(
         point: currentPosition,
+        rotate: true,
+        alignment: Alignment.topCenter,
         child: const Icon(
           Icons.location_pin,
           color: Colors.red,
