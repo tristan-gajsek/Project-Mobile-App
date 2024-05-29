@@ -71,6 +71,7 @@ class SharedState extends ChangeNotifier {
   }
 
   void stopRecording() async {
+    _recordingStream?.cancel();
     await _recorder.stopRecorder();
     await _recorder.closeRecorder();
     notifyListeners();
