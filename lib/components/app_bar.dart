@@ -30,8 +30,7 @@ class _MainAppBarState extends State<MainAppBar> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        const ProfileScreen(email: "", username: ""),
+                    builder: (context) => const ProfileScreen(),
                   ),
                 );
                 break;

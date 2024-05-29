@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:project_mobile_app/globals.dart' as globals;
 
 class CustomTextField extends StatelessWidget {
   const CustomTextField(
@@ -15,7 +14,7 @@ class CustomTextField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(globals.padding),
+      padding: const EdgeInsets.all(10),
       child: TextField(
         controller: controller,
         obscureText: obscureText,

@@ -1,10 +1,13 @@
-import 'package:catppuccin_flutter/catppuccin_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/screens/authentication/login.dart';
-import 'package:project_mobile_app/theme.dart';
+import 'package:project_mobile_app/state.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const App());
+  runApp(ChangeNotifierProvider(
+    create: (context) => SharedState(),
+    child: const App(),
+  ));
 }
 
 class App extends StatelessWidget {
@@ -20,8 +23,6 @@ class App extends StatelessWidget {
         useMaterial3: true,
       ),
       darkTheme: ThemeData.dark(),
-      // theme: catppuccinTheme(catppuccin.latte),
-      // darkTheme: catppuccinTheme(catppuccin.mocha),
       home: const LoginScreen(),
     );
   }

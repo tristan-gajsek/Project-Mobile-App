@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/screens/app/profile.dart';
 import 'package:project_mobile_app/screens/authentication/login.dart';
-import 'package:project_mobile_app/components/button.dart';
+import 'package:project_mobile_app/components/buttons.dart';
 import 'package:project_mobile_app/components/text_field.dart';
+import 'package:project_mobile_app/state.dart';
+import 'package:provider/provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -18,6 +20,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var sharedState = Provider.of<SharedState>(context);
+    sharedState.email = emailController.text;
+    sharedState.username = usernameController.text;
+
     return Scaffold(
       appBar: AppBar(
         title: const Center(
@@ -52,15 +58,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           CustomButton(
             text: "Register",
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProfileScreen(
-                  email: emailController.text,
-                  username: usernameController.text,
+            onPressed: () {
+              var sharedState = Provider.of<SharedState>(
+                context,
+                listen: false,
+              );
+              sharedState.email = emailController.text;
+              sharedState.username = usernameController.text;
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProfileScreen(),
                 ),
-              ),
-            ),
+              );
+            },
           ),
         ],
       ),

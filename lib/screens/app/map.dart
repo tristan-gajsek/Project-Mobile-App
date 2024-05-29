@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:project_mobile_app/components/app_bar.dart';
 import 'package:project_mobile_app/components/buttons.dart';
-import 'package:project_mobile_app/utils/location.dart' as location;
+import 'package:project_mobile_app/state.dart';
+import 'package:provider/provider.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -14,35 +14,12 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  final mapController = MapController();
-  LatLng? currentPosition;
-  bool isFetchingPosition = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _getPosition();
-  }
-
-  Future<void> _getPosition() async {
-    setState(() {
-      isFetchingPosition = true;
-    });
-
-    Position position = await location.getPosition();
-
-    setState(() {
-      currentPosition = LatLng(position.latitude, position.longitude);
-      mapController.move(
-        currentPosition!,
-        mapController.camera.zoom,
-      );
-      isFetchingPosition = false;
-    });
-  }
+  final _mapController = MapController();
 
   @override
   Widget build(BuildContext context) {
+    var sharedState = Provider.of<SharedState>(context);
+
     return Scaffold(
       appBar: const PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
@@ -52,27 +29,34 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           Expanded(
             child: FlutterMap(
-              mapController: mapController,
-              options: mapOptions,
+              mapController: _mapController,
+              options: mapOptions(sharedState.currentLocation),
               children: [
                 openStreetMapTileLayer,
                 circleLayer,
-                markerLayer(currentPosition)
+                markerLayer(sharedState.currentLocation)
               ],
             ),
           ),
           WideButton(
-            text:
-                isFetchingPosition ? "Fetching position..." : "Reset Position",
-            onPressed: isFetchingPosition ? null : _getPosition,
+            text: "Center Map",
+            onPressed: sharedState.currentLocation == null
+                ? null
+                : () => _mapController.move(
+                      sharedState.currentLocation!,
+                      _mapController.camera.zoom,
+                    ),
           ),
+          // Text("Latitude: ${sharedState.currentLocation?.latitude}"),
+          // Text("Longitude: ${sharedState.currentLocation?.longitude}"),
         ],
       ),
     );
   }
 }
 
-MapOptions get mapOptions => const MapOptions(
+MapOptions mapOptions([LatLng? initialCenter]) => MapOptions(
+      initialCenter: initialCenter ?? const LatLng(50.5, 30.51),
       maxZoom: 16,
       minZoom: 4,
     );
@@ -83,15 +67,17 @@ TileLayer get openStreetMapTileLayer => TileLayer(
       userAgentPackageName: "dev.fleaflet.flutter_map.example",
     );
 
-MarkerLayer markerLayer(LatLng? currentPosition) {
-  if (currentPosition == null) {
+MarkerLayer markerLayer(LatLng? currentLocation) {
+  if (currentLocation == null) {
     return const MarkerLayer(markers: []);
   }
 
   return MarkerLayer(
     markers: [
       Marker(
-        point: currentPosition,
+        point: currentLocation,
+        rotate: true,
+        alignment: Alignment.topCenter,
         child: const Icon(
           Icons.location_pin,
           color: Colors.red,
