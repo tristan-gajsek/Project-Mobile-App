@@ -1,8 +1,5 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:project_mobile_app/components/app_bar.dart';
 import 'package:project_mobile_app/components/buttons.dart';
@@ -18,51 +15,6 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   final _mapController = MapController();
-  StreamSubscription<Position>? _positionStream;
-  bool _foundFirstLocation = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _startPositionStream();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      var sharedState = Provider.of<SharedState>(context, listen: false);
-      if (sharedState.currentLocation != null) {
-        _mapController.move(
-          sharedState.currentLocation!,
-          _mapController.camera.zoom,
-        );
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _positionStream?.cancel();
-    super.dispose();
-  }
-
-  void _startPositionStream() {
-    _positionStream = Geolocator.getPositionStream().listen((Position pos) {
-      var sharedState = Provider.of<SharedState>(context, listen: false);
-
-      setState(() {
-        sharedState.currentLocation = LatLng(
-          pos.latitude,
-          pos.longitude,
-        );
-
-        if (!_foundFirstLocation) {
-          _mapController.move(
-            sharedState.currentLocation!,
-            _mapController.camera.zoom,
-          );
-          _foundFirstLocation = true;
-        }
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +30,7 @@ class _MapScreenState extends State<MapScreen> {
           Expanded(
             child: FlutterMap(
               mapController: _mapController,
-              options: mapOptions,
+              options: mapOptions(sharedState.currentLocation),
               children: [
                 openStreetMapTileLayer,
                 circleLayer,
@@ -103,7 +55,8 @@ class _MapScreenState extends State<MapScreen> {
   }
 }
 
-MapOptions get mapOptions => const MapOptions(
+MapOptions mapOptions([LatLng? initialCenter]) => MapOptions(
+      initialCenter: initialCenter ?? const LatLng(50.5, 30.51),
       maxZoom: 16,
       minZoom: 4,
     );
