@@ -6,6 +6,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:project_mobile_app/components/app_bar.dart';
 import 'package:project_mobile_app/components/buttons.dart';
+import 'package:project_mobile_app/state.dart';
+import 'package:provider/provider.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -17,13 +19,20 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   final _mapController = MapController();
   StreamSubscription<Position>? _positionStream;
-  LatLng? _currentPosition;
   bool _foundFirstLocation = false;
 
   @override
   void initState() {
     super.initState();
     _startPositionStream();
+    var sharedState = Provider.of<SharedState>(context);
+
+    if (sharedState.currentLocation != null) {
+      _mapController.move(
+        sharedState.currentLocation!,
+        _mapController.camera.zoom,
+      );
+    }
   }
 
   @override
@@ -35,11 +44,17 @@ class _MapScreenState extends State<MapScreen> {
   void _startPositionStream() {
     _positionStream =
         Geolocator.getPositionStream().listen((Position position) {
+      var sharedState = Provider.of<SharedState>(context, listen: false);
+
       setState(() {
-        _currentPosition = LatLng(position.latitude, position.longitude);
+        sharedState.currentLocation = LatLng(
+          position.latitude,
+          position.longitude,
+        );
+
         if (!_foundFirstLocation) {
           _mapController.move(
-            _currentPosition!,
+            sharedState.currentLocation!,
             _mapController.camera.zoom,
           );
           _foundFirstLocation = true;
@@ -50,6 +65,8 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var sharedState = Provider.of<SharedState>(context);
+
     return Scaffold(
       appBar: const PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
@@ -64,21 +81,21 @@ class _MapScreenState extends State<MapScreen> {
               children: [
                 openStreetMapTileLayer,
                 circleLayer,
-                markerLayer(_currentPosition)
+                markerLayer(sharedState.currentLocation)
               ],
             ),
           ),
           WideButton(
             text: "Center Map",
-            onPressed: _currentPosition == null
+            onPressed: sharedState.currentLocation == null
                 ? null
                 : () => _mapController.move(
-                      _currentPosition!,
+                      sharedState.currentLocation!,
                       _mapController.camera.zoom,
                     ),
           ),
-          // Text("Latitude: ${_currentPosition?.latitude}"),
-          // Text("Longitude: ${_currentPosition?.longitude}"),
+          // Text("Latitude: ${sharedState.currentLocation?.latitude}"),
+          // Text("Longitude: ${sharedState.currentLocation?.longitude}"),
         ],
       ),
     );
@@ -96,15 +113,15 @@ TileLayer get openStreetMapTileLayer => TileLayer(
       userAgentPackageName: "dev.fleaflet.flutter_map.example",
     );
 
-MarkerLayer markerLayer(LatLng? currentPosition) {
-  if (currentPosition == null) {
+MarkerLayer markerLayer(LatLng? currentLocation) {
+  if (currentLocation == null) {
     return const MarkerLayer(markers: []);
   }
 
   return MarkerLayer(
     markers: [
       Marker(
-        point: currentPosition,
+        point: currentLocation,
         rotate: true,
         alignment: Alignment.topCenter,
         child: const Icon(

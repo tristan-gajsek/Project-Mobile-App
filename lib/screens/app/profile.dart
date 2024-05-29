@@ -6,6 +6,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:project_mobile_app/components/app_bar.dart';
 import 'package:project_mobile_app/globals.dart' as globals;
+import 'package:project_mobile_app/state.dart';
+import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String email;
@@ -56,6 +58,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    var sharedState = Provider.of<SharedState>(context);
+
     return Scaffold(
       appBar: const PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
@@ -107,15 +111,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               var duration = snapshot.data!.duration;
               var decibels = snapshot.data!.decibels!;
-              if (decibels > (maxDecibels ?? 0)) {
-                maxDecibels = decibels;
+              if (decibels > (sharedState.maxDecibels ?? 0)) {
+                sharedState.maxDecibels = decibels;
               }
 
               return Text(
                 """
                 Duration: ${duration.inMilliseconds}ms
                 Decibels: $decibels
-                Max decibels: ${maxDecibels ?? 0}
+                Max decibels: ${sharedState.maxDecibels ?? 0}
                 """
                     .replaceAll(RegExp(r"^\s+", multiLine: true), ""),
               );
