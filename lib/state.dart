@@ -111,6 +111,10 @@ class SharedState extends ChangeNotifier {
     _client!.logging(on: true);
     _client!.onConnected = _onConnected;
     _client!.onDisconnected = _onDisconnected;
+    _client!.onSubscribed = _onSubscribed;
+    _client!.onSubscribeFail = _onSubscribeFail;
+    _client!.onUnsubscribed = _onUnsubscribed;
+    _client!.pongCallback = _pong;
 
     final connMessage = MqttConnectMessage()
         .withClientIdentifier(clientId)
@@ -136,5 +140,21 @@ class SharedState extends ChangeNotifier {
 
   void _onDisconnected() {
     debugPrint('Disconnected');
+  }
+
+  void _onSubscribed(String topic) {
+    debugPrint('Subscribed to $topic');
+  }
+
+  void _onSubscribeFail(String topic) {
+    debugPrint('Failed to subscribe $topic');
+  }
+
+  void _onUnsubscribed(String? topic) {
+    debugPrint('Unsubscribed from $topic');
+  }
+
+  void _pong() {
+    debugPrint('Ping response client callback invoked');
   }
 }
