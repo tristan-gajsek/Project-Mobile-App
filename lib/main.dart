@@ -4,6 +4,10 @@ import 'package:project_mobile_app/state.dart';
 import 'package:provider/provider.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  final sharedState = SharedState();
+  sharedState.initializeMqtt('192.168.56.1', 'flutter_client');
+
   runApp(ChangeNotifierProvider(
     create: (context) => SharedState(),
     child: const App(),

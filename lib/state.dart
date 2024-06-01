@@ -125,7 +125,7 @@ class SharedState extends ChangeNotifier {
     try {
       await _client!.connect();
     } catch (e) {
-      print('Exception: $e');
+      debugPrint('Exception: $e');
       disconnect();
     }
   }
