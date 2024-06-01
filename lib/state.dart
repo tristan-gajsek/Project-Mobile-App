@@ -110,6 +110,7 @@ class SharedState extends ChangeNotifier {
     _client = MqttServerClient(server, clientId);
     _client!.logging(on: true);
     _client!.onConnected = _onConnected;
+    _client!.onDisconnected = _onDisconnected;
 
     final connMessage = MqttConnectMessage()
         .withClientIdentifier(clientId)
@@ -131,5 +132,9 @@ class SharedState extends ChangeNotifier {
 
   void _onConnected() {
     debugPrint('Connected');
+  }
+
+  void _onDisconnected() {
+    debugPrint('Disconnected');
   }
 }
