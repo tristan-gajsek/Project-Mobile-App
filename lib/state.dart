@@ -157,4 +157,11 @@ class SharedState extends ChangeNotifier {
   void _pong() {
     debugPrint('Ping response client callback invoked');
   }
+
+  // Method to send data to a topic
+  void sendData(String topic, String message) {
+    final builder = MqttClientPayloadBuilder();
+    builder.addString(message);
+    _client!.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+  }
 }
