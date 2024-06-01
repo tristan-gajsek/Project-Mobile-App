@@ -6,7 +6,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
+
 class SharedState extends ChangeNotifier {
+  MqttServerClient? _client;
+
   String? _email;
   String? _username;
 
@@ -98,5 +103,28 @@ class SharedState extends ChangeNotifier {
   set currentLocation(LatLng? currentLocation) {
     _currentLocation = currentLocation;
     notifyListeners();
+  }
+
+    // Initialize MQTT client
+  Future<void> initializeMqtt(String server, String clientId) async {
+    _client = MqttServerClient(server, clientId);
+    _client!.logging(on: true);
+
+    final connMessage = MqttConnectMessage()
+        .withClientIdentifier(clientId)
+        .startClean()
+        .withWillQos(MqttQos.atLeastOnce);
+    _client!.connectionMessage = connMessage;
+
+    try {
+      await _client!.connect();
+    } catch (e) {
+      print('Exception: $e');
+      disconnect();
+    }
+  }
+
+  void disconnect() {
+    _client?.disconnect();
   }
 }
