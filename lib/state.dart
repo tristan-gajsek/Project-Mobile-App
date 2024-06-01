@@ -109,6 +109,7 @@ class SharedState extends ChangeNotifier {
   Future<void> initializeMqtt(String server, String clientId) async {
     _client = MqttServerClient(server, clientId);
     _client!.logging(on: true);
+    _client!.onConnected = _onConnected;
 
     final connMessage = MqttConnectMessage()
         .withClientIdentifier(clientId)
@@ -126,5 +127,9 @@ class SharedState extends ChangeNotifier {
 
   void disconnect() {
     _client?.disconnect();
+  }
+
+  void _onConnected() {
+    debugPrint('Connected');
   }
 }
