@@ -46,6 +46,7 @@ dependencies:
   flutter_map: ^6.0.0
   latlong2: ^0.9.1
   geolocator: ^7.0.3 # Don't change this unless you know it won't cause build issues
+  mqtt_client: ^9.6.1 # MQTT client for Flutter
 
 dev_dependencies:
   flutter_test:
