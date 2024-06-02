@@ -10,6 +10,7 @@ import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
 class SharedState extends ChangeNotifier {
+  final backendIp = "localhost";
   MqttServerClient? _client;
 
   String? _email;
