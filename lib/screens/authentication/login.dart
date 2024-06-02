@@ -53,6 +53,17 @@ class _LoginScreenState extends State<LoginScreen> {
           CustomButton(
             text: "Log in",
             onPressed: () async {
+              if (usernameController.text.isEmpty ||
+                  passwordController.text.isEmpty) {
+                showCustomDialog(
+                  context,
+                  "Login Failed",
+                  "Make sure to fill out everything.",
+                  "OK",
+                );
+                return;
+              }
+
               var sharedState = Provider.of<SharedState>(
                 context,
                 listen: false,

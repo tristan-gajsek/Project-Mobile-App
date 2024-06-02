@@ -63,6 +63,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
           CustomButton(
             text: "Register",
             onPressed: () async {
+              if (emailController.text.isEmpty ||
+                  usernameController.text.isEmpty ||
+                  passwordController.text.isEmpty) {
+                showCustomDialog(
+                  context,
+                  "Registration Failed",
+                  "Make sure to fill out everything.",
+                  "OK",
+                );
+                return;
+              }
+
+              final emailRegex = RegExp(r"^[\w-]+@([\w-]+\.)+[\w-]{2,4}$");
+              if (!emailRegex.hasMatch(emailController.text)) {
+                showCustomDialog(
+                  context,
+                  "Registration Failed",
+                  "Make sure your email is valid.",
+                  "OK",
+                );
+                return;
+              }
+
               var sharedState = Provider.of<SharedState>(
                 context,
                 listen: false,
