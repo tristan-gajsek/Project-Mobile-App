@@ -22,8 +22,8 @@ class _MainAppBarState extends State<MainAppBar> {
       ),
       leading: IconButton(
         onPressed: () {
-            var sharedState = Provider.of<SharedState>(context, listen: false);
-            sharedState.endSession();
+            // var sharedState = Provider.of<SharedState>(context, listen: false);
+            // sharedState.endSession();
             Navigator.pop(context);
         },
         icon: const Icon(Icons.logout),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -8,9 +9,10 @@ import 'package:latlong2/latlong.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:project_mobile_app/util/noise.dart';
 
 class SharedState extends ChangeNotifier {
-  final backendIp = "localhost";
+  final backendIp = "45.79.251.42";
   final httpClient = http.Client();
   MqttServerClient? _client;
 
@@ -30,6 +32,34 @@ class SharedState extends ChangeNotifier {
 
   StreamSubscription<Position>? _positionStream;
   StreamSubscription<RecordingDisposition>? _recordingStream;
+
+  List<Noise> _noises = [];
+  get noises => _noises;
+  bool _gettingNoises = false;
+  get gettingNoises => _gettingNoises;
+
+  Future getNoises() async {
+    _gettingNoises = true;
+    final response = await httpClient.get(
+      Uri.parse("http://$backendIp:3001/datas"),
+    );
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      for (var noise in data) {
+        _noises.add(Noise(
+          LatLng(
+            noise["latitude"].toDouble(),
+            noise["longitude"].toDouble(),
+          ),
+          noise["decibels"].toDouble(),
+        ));
+      }
+      notifyListeners();
+    }
+    _gettingNoises = false;
+  }
 
   SharedState() {
     Permission.microphone.request();

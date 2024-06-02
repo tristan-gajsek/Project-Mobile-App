@@ -19,6 +19,10 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     var sharedState = Provider.of<SharedState>(context);
+    print(sharedState.noises);
+    if (sharedState.noises.isEmpty && !sharedState.gettingNoises) {
+      sharedState.getNoises();
+    }
 
     return Scaffold(
       appBar: const PreferredSize(
@@ -47,8 +51,6 @@ class _MapScreenState extends State<MapScreen> {
                       _mapController.camera.zoom,
                     ),
           ),
-          // Text("Latitude: ${sharedState.currentLocation?.latitude}"),
-          // Text("Longitude: ${sharedState.currentLocation?.longitude}"),
         ],
       ),
     );
