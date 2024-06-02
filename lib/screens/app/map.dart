@@ -19,7 +19,6 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     var sharedState = Provider.of<SharedState>(context);
-    print(sharedState.noises);
     if (sharedState.noises.isEmpty && !sharedState.gettingNoises) {
       sharedState.getNoises();
     }
@@ -37,7 +36,7 @@ class _MapScreenState extends State<MapScreen> {
               options: mapOptions(sharedState.currentLocation),
               children: [
                 openStreetMapTileLayer,
-                circleLayer,
+                circleLayer(sharedState),
                 markerLayer(sharedState.currentLocation)
               ],
             ),
@@ -90,12 +89,14 @@ MarkerLayer markerLayer(LatLng? currentLocation) {
   );
 }
 
-CircleLayer get circleLayer => CircleLayer(
-      circles: [
-        CircleMarker(
-          point: const LatLng(46.1512, 14.9955),
-          radius: 25,
-          color: Colors.red.withOpacity(0.5),
-        ),
-      ],
-    );
+CircleLayer circleLayer(SharedState sharedState) {
+  List<CircleMarker> circles = [];
+  for (var noise in sharedState.noises) {
+    circles.add(CircleMarker(
+      point: noise.location,
+      radius: noise.decibels,
+      color: Colors.red.withOpacity(0.5),
+    ));
+  }
+  return CircleLayer(circles: circles);
+}

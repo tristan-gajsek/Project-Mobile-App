@@ -43,7 +43,6 @@ class SharedState extends ChangeNotifier {
     final response = await httpClient.get(
       Uri.parse("http://$backendIp:3001/datas"),
     );
-    print(response.body);
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
