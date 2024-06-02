@@ -3,14 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:geolocator/geolocator.dart';
+import "package:http/http.dart" as http;
 import 'package:latlong2/latlong.dart';
-import 'package:permission_handler/permission_handler.dart';
-
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class SharedState extends ChangeNotifier {
   final backendIp = "localhost";
+  final httpClient = http.Client();
   MqttServerClient? _client;
 
   String? _email;
@@ -36,10 +37,16 @@ class SharedState extends ChangeNotifier {
   }
 
   @override
-  void dispose() {
+  void dispose() async {
     stopRecording();
     _positionStream?.cancel();
+    await endSession();
     super.dispose();
+  }
+
+  Future endSession() async {
+    await httpClient.post(Uri.parse("http://$backendIp:3001/users/logout"));
+    httpClient.close();
   }
 
   void _startPositionStream() {
@@ -106,7 +113,7 @@ class SharedState extends ChangeNotifier {
     notifyListeners();
   }
 
-    // Initialize MQTT client
+  // Initialize MQTT client
   Future<void> initializeMqtt(String server, String clientId) async {
     _client = MqttServerClient(server, clientId);
     _client!.logging(on: true);

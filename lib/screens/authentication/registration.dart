@@ -80,7 +80,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 listen: false,
               );
 
-              final response = await http.post(
+              final response = await sharedState.httpClient.post(
                 Uri.parse("http://${sharedState.backendIp}:3001/users"),
                 headers: {"Content-Type": "application/json; charset=UTF-8"},
                 body: jsonEncode({

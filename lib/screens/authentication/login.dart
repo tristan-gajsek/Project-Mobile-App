@@ -69,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 listen: false,
               );
 
-              final response = await http.post(
+              final response = await sharedState.httpClient.post(
                 Uri.parse("http://${sharedState.backendIp}:3001/users/login"),
                 headers: {"Content-Type": "application/json; charset=UTF-8"},
                 body: jsonEncode({
