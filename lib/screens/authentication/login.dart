@@ -60,10 +60,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
               final response = await http.post(
                 Uri.parse("http://${sharedState.backendIp}:3001/users/login"),
-                headers: <String, String>{
-                  "Content-Type": "application/json; charset=UTF-8",
-                },
-                body: jsonEncode(<String, String>{
+                headers: {"Content-Type": "application/json; charset=UTF-8"},
+                body: jsonEncode({
                   "username": usernameController.text,
                   "password": passwordController.text,
                 }),
