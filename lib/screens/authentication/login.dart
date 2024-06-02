@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:project_mobile_app/components/dialog.dart';
 import 'package:project_mobile_app/screens/app/profile.dart';
 import 'package:project_mobile_app/screens/authentication/registration.dart';
 import 'package:project_mobile_app/components/buttons.dart';
@@ -56,8 +57,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 context,
                 listen: false,
               );
-              sharedState.email = "foo@bar.com";
-              sharedState.username = usernameController.text;
 
               final response = await http.post(
                 Uri.parse("http://${sharedState.backendIp}:3001/users/login"),
@@ -70,7 +69,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 }),
               );
 
-              print(response.body);
               if (response.statusCode == 200) {
                 final data = jsonDecode(response.body);
                 if (data["_id"] != null) {
@@ -88,20 +86,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
               usernameController.clear();
               passwordController.clear();
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: const Text("Login Failed"),
-                    content: const Text("Username or password was incorrect."),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: const Text("OK"),
-                      ),
-                    ],
-                  );
-                },
+              showCustomDialog(
+                context,
+                "Login Failed",
+                "Username or password was incorrect.",
+                "OK",
               );
             },
           ),
