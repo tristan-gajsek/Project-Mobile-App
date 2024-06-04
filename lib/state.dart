@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -12,7 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:project_mobile_app/util/noise.dart';
 
 class SharedState extends ChangeNotifier {
-  final backendIp = "45.79.251.42";
+  final backendIp = "localhost";
   final httpClient = http.Client();
   MqttServerClient? _client;
 
@@ -20,6 +21,8 @@ class SharedState extends ChangeNotifier {
   String? _username;
 
   LatLng? _currentLocation;
+  LatLng? _startingLocation;
+  LatLng? _endLocation;
 
   Duration? _duration;
   double? _decibels;
@@ -116,6 +119,12 @@ class SharedState extends ChangeNotifier {
     _recordingStream?.cancel();
     await _recorder.stopRecorder();
     await _recorder.closeRecorder();
+
+    String? dataString = await dataToString(maxDecibelsLocation, maxDecibels);
+    if (dataString != null) {
+      sendData("noise/update", dataString);
+    }
+    
     notifyListeners();
   }
 
@@ -142,6 +151,14 @@ class SharedState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String?> dataToString(LatLng? position, double? decibels) async {
+    if (position != null && decibels != null) {
+      return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()}}';
+    }
+
+    return null;
+  }
+
   // Initialize MQTT client
   Future<void> initializeMqtt(String server, String clientId) async {
     _client = MqttServerClient(server, clientId);
@@ -152,6 +169,7 @@ class SharedState extends ChangeNotifier {
     _client!.onSubscribeFail = _onSubscribeFail;
     _client!.onUnsubscribed = _onUnsubscribed;
     _client!.pongCallback = _pong;
+    //_client!.publishMessage("noise/update", , '{"latitude":${currentLocation.latitude},"longitude":1.0,}')
 
     final connMessage = MqttConnectMessage()
         .withClientIdentifier(clientId)
