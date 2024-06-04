@@ -1,10 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:project_mobile_app/components/dialog.dart';
 import 'package:project_mobile_app/screens/app/profile.dart';
 import 'package:project_mobile_app/screens/authentication/registration.dart';
 import 'package:project_mobile_app/components/buttons.dart';
 import 'package:project_mobile_app/components/text_field.dart';
 import 'package:project_mobile_app/state.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -48,19 +52,54 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           CustomButton(
             text: "Log in",
-            onPressed: () {
+            onPressed: () async {
+              if (usernameController.text.isEmpty ||
+                  passwordController.text.isEmpty) {
+                showCustomDialog(
+                  context,
+                  "Login Failed",
+                  "Make sure to fill out everything.",
+                  "OK",
+                );
+                return;
+              }
+
               var sharedState = Provider.of<SharedState>(
                 context,
                 listen: false,
               );
-              sharedState.email = "foo@bar.com";
-              sharedState.username = usernameController.text;
 
-              Navigator.push(
+              final response = await sharedState.httpClient.post(
+                Uri.parse("http://${sharedState.backendIp}:3001/users/login"),
+                headers: {"Content-Type": "application/json; charset=UTF-8"},
+                body: jsonEncode({
+                  "username": usernameController.text,
+                  "password": passwordController.text,
+                }),
+              );
+
+              if (response.statusCode == 200) {
+                final data = jsonDecode(response.body);
+                if (data["_id"] != null) {
+                  sharedState.email = data["email"];
+                  sharedState.username = data["username"];
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
+                  return;
+                }
+              }
+
+              usernameController.clear();
+              passwordController.clear();
+              showCustomDialog(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const ProfileScreen(),
-                ),
+                "Login Failed",
+                "Username or password was incorrect.",
+                "OK",
               );
             },
           ),

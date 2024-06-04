@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/screens/app/map.dart';
 import 'package:project_mobile_app/screens/app/profile.dart';
+import 'package:project_mobile_app/state.dart';
+import 'package:provider/provider.dart';
 
 class MainAppBar extends StatefulWidget {
   final String title;
@@ -19,7 +21,11 @@ class _MainAppBarState extends State<MainAppBar> {
         child: Text(widget.title),
       ),
       leading: IconButton(
-        onPressed: () => Navigator.pop(context),
+        onPressed: () {
+            // var sharedState = Provider.of<SharedState>(context, listen: false);
+            // sharedState.endSession();
+            Navigator.pop(context);
+        },
         icon: const Icon(Icons.logout),
       ),
       actions: [

@@ -1,10 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:project_mobile_app/components/dialog.dart';
 import 'package:project_mobile_app/screens/app/profile.dart';
 import 'package:project_mobile_app/screens/authentication/login.dart';
 import 'package:project_mobile_app/components/buttons.dart';
 import 'package:project_mobile_app/components/text_field.dart';
 import 'package:project_mobile_app/state.dart';
 import 'package:provider/provider.dart';
+import "package:http/http.dart" as http;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -58,19 +62,57 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           CustomButton(
             text: "Register",
-            onPressed: () {
+            onPressed: () async {
+              if (emailController.text.isEmpty ||
+                  usernameController.text.isEmpty ||
+                  passwordController.text.isEmpty) {
+                showCustomDialog(
+                  context,
+                  "Registration Failed",
+                  "Make sure to fill out everything.",
+                  "OK",
+                );
+                return;
+              }
+
               var sharedState = Provider.of<SharedState>(
                 context,
                 listen: false,
               );
-              sharedState.email = emailController.text;
-              sharedState.username = usernameController.text;
 
-              Navigator.push(
+              final response = await sharedState.httpClient.post(
+                Uri.parse("http://${sharedState.backendIp}:3001/users"),
+                headers: {"Content-Type": "application/json; charset=UTF-8"},
+                body: jsonEncode({
+                  "email": emailController.text,
+                  "username": usernameController.text,
+                  "password": passwordController.text,
+                }),
+              );
+
+              if (response.statusCode == 201) {
+                final data = jsonDecode(response.body);
+                if (data["_id"] != null) {
+                  sharedState.email = data["email"];
+                  sharedState.username = data["username"];
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
+                  return;
+                }
+              }
+
+              emailController.clear();
+              usernameController.clear();
+              passwordController.clear();
+              showCustomDialog(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => const ProfileScreen(),
-                ),
+                "Registration Failed",
+                "Please try again.",
+                "OK",
               );
             },
           ),

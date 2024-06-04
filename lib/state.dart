@@ -1,16 +1,28 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:ffi';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:geolocator/geolocator.dart';
+import "package:http/http.dart" as http;
 import 'package:latlong2/latlong.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:project_mobile_app/util/noise.dart';
 
 class SharedState extends ChangeNotifier {
+  final backendIp = "localhost";
+  final httpClient = http.Client();
+  MqttServerClient? _client;
+
   String? _email;
   String? _username;
 
   LatLng? _currentLocation;
+  LatLng? _startingLocation;
+  LatLng? _endLocation;
 
   Duration? _duration;
   double? _decibels;
@@ -24,16 +36,49 @@ class SharedState extends ChangeNotifier {
   StreamSubscription<Position>? _positionStream;
   StreamSubscription<RecordingDisposition>? _recordingStream;
 
+  List<Noise> _noises = [];
+  get noises => _noises;
+  bool _gettingNoises = false;
+  get gettingNoises => _gettingNoises;
+
+  Future getNoises() async {
+    _gettingNoises = true;
+    final response = await httpClient.get(
+      Uri.parse("http://$backendIp:3001/datas"),
+    );
+
+    if (response.statusCode == 200) {
+      List<dynamic> data = jsonDecode(response.body);
+      for (var noise in data) {
+        _noises.add(Noise(
+          LatLng(
+            noise["latitude"].toDouble(),
+            noise["longitude"].toDouble(),
+          ),
+          noise["decibels"].toDouble(),
+        ));
+      }
+      notifyListeners();
+    }
+    _gettingNoises = false;
+  }
+
   SharedState() {
     Permission.microphone.request();
     _startPositionStream();
   }
 
   @override
-  void dispose() {
+  void dispose() async {
     stopRecording();
     _positionStream?.cancel();
+    await endSession();
     super.dispose();
+  }
+
+  Future endSession() async {
+    await httpClient.post(Uri.parse("http://$backendIp:3001/users/logout"));
+    httpClient.close();
   }
 
   void _startPositionStream() {
@@ -74,6 +119,12 @@ class SharedState extends ChangeNotifier {
     _recordingStream?.cancel();
     await _recorder.stopRecorder();
     await _recorder.closeRecorder();
+
+    String? dataString = await dataToString(maxDecibelsLocation, maxDecibels);
+    if (dataString != null) {
+      sendData("noise/update", dataString);
+    }
+    
     notifyListeners();
   }
 
@@ -98,5 +149,74 @@ class SharedState extends ChangeNotifier {
   set currentLocation(LatLng? currentLocation) {
     _currentLocation = currentLocation;
     notifyListeners();
+  }
+
+  Future<String?> dataToString(LatLng? position, double? decibels) async {
+    if (position != null && decibels != null) {
+      return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()}}';
+    }
+
+    return null;
+  }
+
+  // Initialize MQTT client
+  Future<void> initializeMqtt(String server, String clientId) async {
+    _client = MqttServerClient(server, clientId);
+    _client!.logging(on: true);
+    _client!.onConnected = _onConnected;
+    _client!.onDisconnected = _onDisconnected;
+    _client!.onSubscribed = _onSubscribed;
+    _client!.onSubscribeFail = _onSubscribeFail;
+    _client!.onUnsubscribed = _onUnsubscribed;
+    _client!.pongCallback = _pong;
+    //_client!.publishMessage("noise/update", , '{"latitude":${currentLocation.latitude},"longitude":1.0,}')
+
+    final connMessage = MqttConnectMessage()
+        .withClientIdentifier(clientId)
+        .startClean()
+        .withWillQos(MqttQos.atLeastOnce);
+    _client!.connectionMessage = connMessage;
+
+    try {
+      await _client!.connect();
+    } catch (e) {
+      debugPrint('Exception: $e');
+      disconnect();
+    }
+  }
+
+  void disconnect() {
+    _client?.disconnect();
+  }
+
+  void _onConnected() {
+    debugPrint('Connected');
+  }
+
+  void _onDisconnected() {
+    debugPrint('Disconnected');
+  }
+
+  void _onSubscribed(String topic) {
+    debugPrint('Subscribed to $topic');
+  }
+
+  void _onSubscribeFail(String topic) {
+    debugPrint('Failed to subscribe $topic');
+  }
+
+  void _onUnsubscribed(String? topic) {
+    debugPrint('Unsubscribed from $topic');
+  }
+
+  void _pong() {
+    debugPrint('Ping response client callback invoked');
+  }
+
+  // Method to send data to a topic
+  void sendData(String topic, String message) {
+    final builder = MqttClientPayloadBuilder();
+    builder.addString(message);
+    _client!.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
   }
 }
