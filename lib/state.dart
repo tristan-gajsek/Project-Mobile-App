@@ -21,8 +21,13 @@ class SharedState extends ChangeNotifier {
   String? _username;
 
   LatLng? _currentLocation;
+
+  // Sešlovi variabli
   LatLng? _startingLocation;
   LatLng? _endLocation;
+  double _decibelSum = 0;
+  double _counter = 0;
+  double? _range; // x < 50 (Green), 50 > x < 80 (Yellow), 80 < x (Red)
 
   Duration? _duration;
   double? _decibels;
@@ -107,11 +112,19 @@ class SharedState extends ChangeNotifier {
       _duration = snapshot.duration;
       _decibels = snapshot.decibels!;
 
+      // Sešlov method: Check for drastic spike and stop recodring
+      _decibelSum += decibels!;
+      _counter += 1;
+
+      
+
+      /* Tristanov method:
       if (decibels! > (maxDecibels ?? 0)) {
         _maxDecibels = decibels;
         _maxDecibelsLocation = currentLocation;
-        // Check for drastic spike and stop recodring
+        
       }
+      */
       notifyListeners();
     });
 
@@ -159,6 +172,19 @@ class SharedState extends ChangeNotifier {
     notifyListeners();
   }
 
+  double? get range => _range;
+  set range(double? decibels) {
+    if (decibels != null) {
+      if (decibels <= 50) {
+        _range = 0; // Green
+      } else if (50 < decibels && decibels <= 80) {
+        _range = 1; // Yellow
+      } else {
+        _range = 2; // Red
+      }
+    }
+  }
+
   // Modify this to include radius
   Future<String?> dataToString(LatLng? position, double? decibels) async {
     if (position != null && decibels != null) {
@@ -166,6 +192,34 @@ class SharedState extends ChangeNotifier {
     }
 
     return null;
+  }
+
+  // Might need to simplify
+  Future<bool> isOutOfRange(double? decibels) async {
+    if (decibels != null) {
+      if (range == 0) {
+        if (decibels <= 50) {
+          return true;
+        } else {
+          return false;
+        }
+      } else if (range == 2) {
+        if (50 < decibels && decibels <= 80) {
+          return true;
+        }
+        else {
+          return false;
+        }
+      } else if (range == 3) {
+        if (80 < decibels) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    }
+
+    return false;
   }
 
   // Initialize MQTT client
