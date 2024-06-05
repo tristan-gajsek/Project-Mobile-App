@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -30,7 +31,7 @@ class SharedState extends ChangeNotifier {
   double _counter = 0;
   double? _avgDecibels;
   double? _radius;
-  double? _range; // 0 = <=50 (Green), 1 = 50< ... <=80 (Yellow), 2 = 80< (Red)
+  double? _range; // 0 = <=50 (Green), 1 = 51 - 80 (Yellow), 2 = 80< (Red)
 
   Duration? _duration;
   double? _decibels;
@@ -116,19 +117,37 @@ class SharedState extends ChangeNotifier {
       _decibels = snapshot.decibels!;
 
       // Sešlov method: Check for drastic spike and restart recodring
-      // Possible issues: might not execute in time
+      // Possible issues: Might not execute in time (needs simplification)
       _decibelSum += decibels!;
       _counter += 1;
 
       if (isOutOfRange(_decibelSum / _counter)) {
         _avgDecibels = _decibelSum / _counter;
         _endLocation = currentLocation;
+
+        // Calculate distance
+        _center = LatLng((_startingLocation!.latitude + _endLocation!.latitude) / 2, 
+                        (_startingLocation!.longitude + _endLocation!.longitude) / 2);
+
+        // Triangulate radius
+        double latDist = (_startingLocation!.latitude - _endLocation!.latitude).abs();
+        double longDist = (_startingLocation!.longitude - _endLocation!.longitude).abs();
+        _radius = sqrt((latDist*latDist) + (longDist*longDist)) / 2;
+
+        /* Needs to be done withou await
+        String? dataString = await dataToString(center, avgDecibels, radius);
+        if (dataString != null) {
+          sendData("noise/update", dataString);
+        }
+        */
+
+        // Reset values
+        _decibelSum = 0;
+        _counter = 0;
         range = decibels;
-
-        _center = LatLng((_startingLocation!.latitude + _endLocation!.latitude)/2, 
-                        (_startingLocation!.longitude + _endLocation!.longitude)/2);
-
-        // Need to add triangulation for radius
+        _startingLocation = _endLocation;
+        _center = null;
+        _avgDecibels = null;
       }
       
 
@@ -207,6 +226,7 @@ class SharedState extends ChangeNotifier {
 
   double? get avgDecibels => _avgDecibels;
   LatLng? get center => _center;
+  double? get radius => _radius;
 
   /* New way: Need to add radius
   Future<String?> dataToString(LatLng? position, double? decibels, double? radius) async {
@@ -229,6 +249,10 @@ class SharedState extends ChangeNotifier {
 
   // Might need to simplify
   bool isOutOfRange(double decibels) {
+    // Current ranges:
+    //  < 50dB = Green
+    // 51dB - 80dB = Yellow
+    // 81db < = Red
     if (range == 0) {
       if (decibels <= 50) {
         return true;
