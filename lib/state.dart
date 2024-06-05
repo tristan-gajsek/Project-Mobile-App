@@ -47,6 +47,8 @@ class SharedState extends ChangeNotifier {
       Uri.parse("http://$backendIp:3001/datas"),
     );
 
+    // Change this eventually to fit new data format
+
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
       for (var noise in data) {
@@ -92,7 +94,10 @@ class SharedState extends ChangeNotifier {
   }
 
   void startRecording() async {
-    // Add start LatLong (check if not null)
+    // May need to move this function
+    while (currentLocation == null) {}
+    _startingLocation = currentLocation;
+
     await _recorder.openRecorder();
     await _recorder.setSubscriptionDuration(
       const Duration(milliseconds: 100),
@@ -154,6 +159,7 @@ class SharedState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Modify this to include radius
   Future<String?> dataToString(LatLng? position, double? decibels) async {
     if (position != null && decibels != null) {
       return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()}}';
@@ -172,7 +178,6 @@ class SharedState extends ChangeNotifier {
     _client!.onSubscribeFail = _onSubscribeFail;
     _client!.onUnsubscribed = _onUnsubscribed;
     _client!.pongCallback = _pong;
-    //_client!.publishMessage("noise/update", , '{"latitude":${currentLocation.latitude},"longitude":1.0,}')
 
     final connMessage = MqttConnectMessage()
         .withClientIdentifier(clientId)
