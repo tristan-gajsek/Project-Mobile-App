@@ -116,7 +116,7 @@ class SharedState extends ChangeNotifier {
       _duration = snapshot.duration;
       _decibels = snapshot.decibels!;
 
-      // Sešlov method: Check for drastic spike and restart recodring
+      /* Sešlov method: Check for drastic spike and restart recodring
       // Possible issues: Might not execute in time (needs simplification)
       _decibelSum += decibels!;
       _counter += 1;
@@ -149,14 +149,14 @@ class SharedState extends ChangeNotifier {
         _center = null;
         _avgDecibels = null;
       }
-      
+      */
 
-      /* Tristanov method:
+      // Tristanov method:
       if (decibels! > (maxDecibels ?? 0)) {
         _maxDecibels = decibels;
         _maxDecibelsLocation = currentLocation;
       }
-      */
+
       notifyListeners();
     });
 
