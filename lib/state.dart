@@ -116,6 +116,7 @@ class SharedState extends ChangeNotifier {
       _decibels = snapshot.decibels!;
 
       // Sešlov method: Check for drastic spike and restart recodring
+      // Possible issues: might not execute in time
       _decibelSum += decibels!;
       _counter += 1;
 
@@ -152,7 +153,14 @@ class SharedState extends ChangeNotifier {
     await _recorder.stopRecorder();
     await _recorder.closeRecorder();
 
-    // Change data formating (also change to frontend)
+    /* New way: Need to add radius
+    String? dataString = await dataToString(center, avgDecibels, radius);
+    if (dataString != null) {
+      sendData("noise/update", dataString);
+    }
+    */
+
+    // Old way:
     String? dataString = await dataToString(maxDecibelsLocation, maxDecibels);
     if (dataString != null) {
       sendData("noise/update", dataString);
@@ -197,7 +205,20 @@ class SharedState extends ChangeNotifier {
     }
   }
 
-  // Modify this to include radius
+  double? get avgDecibels => _avgDecibels;
+  LatLng? get center => _center;
+
+  /* New way: Need to add radius
+  Future<String?> dataToString(LatLng? position, double? decibels, double? radius) async {
+    if (position != null && decibels != null && radius != null) {
+      return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()},"radius":${radius.toString()}}';
+    }
+
+    return null;
+  }
+  */
+
+  // Old way:
   Future<String?> dataToString(LatLng? position, double? decibels) async {
     if (position != null && decibels != null) {
       return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()}}';
