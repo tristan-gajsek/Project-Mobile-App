@@ -25,9 +25,12 @@ class SharedState extends ChangeNotifier {
   // Sešlovi variabli
   LatLng? _startingLocation;
   LatLng? _endLocation;
+  LatLng? _center;
   double _decibelSum = 0;
   double _counter = 0;
-  double? _range; // x < 50 (Green), 50 > x < 80 (Yellow), 80 < x (Red)
+  double? _avgDecibels;
+  double? _radius;
+  double? _range; // 0 = <=50 (Green), 1 = 50< ... <=80 (Yellow), 2 = 80< (Red)
 
   Duration? _duration;
   double? _decibels;
@@ -112,17 +115,26 @@ class SharedState extends ChangeNotifier {
       _duration = snapshot.duration;
       _decibels = snapshot.decibels!;
 
-      // Sešlov method: Check for drastic spike and stop recodring
+      // Sešlov method: Check for drastic spike and restart recodring
       _decibelSum += decibels!;
       _counter += 1;
 
+      if (isOutOfRange(_decibelSum / _counter)) {
+        _avgDecibels = _decibelSum / _counter;
+        _endLocation = currentLocation;
+        range = decibels;
+
+        _center = LatLng((_startingLocation!.latitude + _endLocation!.latitude)/2, 
+                        (_startingLocation!.longitude + _endLocation!.longitude)/2);
+
+        // Need to add triangulation for radius
+      }
       
 
       /* Tristanov method:
       if (decibels! > (maxDecibels ?? 0)) {
         _maxDecibels = decibels;
         _maxDecibelsLocation = currentLocation;
-        
       }
       */
       notifyListeners();
@@ -195,27 +207,24 @@ class SharedState extends ChangeNotifier {
   }
 
   // Might need to simplify
-  Future<bool> isOutOfRange(double? decibels) async {
-    if (decibels != null) {
-      if (range == 0) {
-        if (decibels <= 50) {
-          return true;
-        } else {
-          return false;
-        }
-      } else if (range == 2) {
-        if (50 < decibels && decibels <= 80) {
-          return true;
-        }
-        else {
-          return false;
-        }
-      } else if (range == 3) {
-        if (80 < decibels) {
-          return true;
-        } else {
-          return false;
-        }
+  bool isOutOfRange(double decibels) {
+    if (range == 0) {
+      if (decibels <= 50) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (range == 2) {
+      if (50 < decibels && decibels <= 80) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (range == 3) {
+      if (80 < decibels) {
+        return true;
+      } else {
+        return false;
       }
     }
 
