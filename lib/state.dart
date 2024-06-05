@@ -13,7 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:project_mobile_app/util/noise.dart';
 
 class SharedState extends ChangeNotifier {
-  final backendIp = "localhost";
+  final backendIp = "172.104.251.74";
   final httpClient = http.Client();
   MqttServerClient? _client;
 
@@ -92,6 +92,7 @@ class SharedState extends ChangeNotifier {
   }
 
   void startRecording() async {
+    // Add start LatLong (check if not null)
     await _recorder.openRecorder();
     await _recorder.setSubscriptionDuration(
       const Duration(milliseconds: 100),
@@ -104,6 +105,7 @@ class SharedState extends ChangeNotifier {
       if (decibels! > (maxDecibels ?? 0)) {
         _maxDecibels = decibels;
         _maxDecibelsLocation = currentLocation;
+        // Check for drastic spike and stop recodring
       }
       notifyListeners();
     });
@@ -120,11 +122,12 @@ class SharedState extends ChangeNotifier {
     await _recorder.stopRecorder();
     await _recorder.closeRecorder();
 
+    // Change data formating (also change to frontend)
     String? dataString = await dataToString(maxDecibelsLocation, maxDecibels);
     if (dataString != null) {
       sendData("noise/update", dataString);
     }
-    
+
     notifyListeners();
   }
 
