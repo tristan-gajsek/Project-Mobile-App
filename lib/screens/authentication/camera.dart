@@ -50,6 +50,7 @@ class _CameraScreenState extends State<CameraScreen> {
   Future _pickImageFromGallery() async {
   final returnedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
 
+    if(returnedImage ==  null) return;
     setState(() {
       _selectedImage = File(returnedImage!.path);
     });
@@ -58,6 +59,7 @@ class _CameraScreenState extends State<CameraScreen> {
   Future _pickImageFromCamera() async {
   final returnedImage = await ImagePicker().pickImage(source: ImageSource.camera);
 
+    if(returnedImage ==  null) return;
     setState(() {
       _selectedImage = File(returnedImage!.path);
     });
