@@ -36,7 +36,7 @@ class _CameraScreenState extends State<CameraScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              // TODO
+              _pickImageFromGallery();
             },
             child: const Text('Take image with camera'),
           ),
@@ -49,6 +49,14 @@ class _CameraScreenState extends State<CameraScreen> {
 
   Future _pickImageFromGallery() async {
   final returnedImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+
+    setState(() {
+      _selectedImage = File(returnedImage!.path);
+    });
+  }
+
+  Future _pickImageFromCamera() async {
+  final returnedImage = await ImagePicker().pickImage(source: ImageSource.camera);
 
     setState(() {
       _selectedImage = File(returnedImage!.path);
