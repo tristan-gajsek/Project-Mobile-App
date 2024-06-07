@@ -25,7 +25,8 @@ class _CameraScreenState extends State<CameraScreen> {
         preferredSize: Size.fromHeight(kToolbarHeight),
         child: MainAppBar(title: 'Camera'),
       ),
-      body: Column(
+      body: Center(
+        child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ElevatedButton(
@@ -36,7 +37,7 @@ class _CameraScreenState extends State<CameraScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              _pickImageFromGallery();
+              _pickImageFromCamera();
             },
             child: const Text('Take image with camera'),
           ),
@@ -44,6 +45,7 @@ class _CameraScreenState extends State<CameraScreen> {
           _selectedImage == null ? const Text('No image selected') : Image.file(_selectedImage!),
         ],
       ),
+      ), 
     );
   }
 
