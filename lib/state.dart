@@ -120,8 +120,10 @@ class SharedState extends ChangeNotifier {
       // Possible issues: Might not execute in time (needs simplification)
       _decibelSum += decibels!;
       _counter += 1;
-
-      if (isOutOfRange(_decibelSum / _counter)) {
+      
+      // After about 1 min of recording it starts comparing average to the predicted range
+      // If average exceeds range or current range has been recording for about 30 mins it will execute the code
+      if ((isOutOfRange(_decibelSum / _counter) && _counter >= 600) || _counter >= 18000) {
         _avgDecibels = _decibelSum / _counter;
         _endLocation = currentLocation;
 
@@ -144,8 +146,9 @@ class SharedState extends ChangeNotifier {
         // Reset values
         _decibelSum = 0;
         _counter = 0;
-        range = decibels;
+        range = _avgDecibels;
         _startingLocation = _endLocation;
+        _endLoacation = null;
         _center = null;
         _avgDecibels = null;
       }
