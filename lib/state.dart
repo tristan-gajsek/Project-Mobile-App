@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ffi';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_sound/flutter_sound.dart';
@@ -13,7 +14,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:project_mobile_app/util/noise.dart';
 
 class SharedState extends ChangeNotifier {
-  final backendIp = "localhost";
+  final backendIp = "172.104.251.74";
   final httpClient = http.Client();
   MqttServerClient? _client;
 
@@ -21,8 +22,16 @@ class SharedState extends ChangeNotifier {
   String? _username;
 
   LatLng? _currentLocation;
+
+  // Sešlovi variabli
   LatLng? _startingLocation;
   LatLng? _endLocation;
+  LatLng? _center;
+  double _decibelSum = 0;
+  double _counter = 0;
+  double? _avgDecibels;
+  double? _radius;
+  double? _range; // 0 = <=50 (Green), 1 = 51 - 80 (Yellow), 2 = 80< (Red)
 
   Duration? _duration;
   double? _decibels;
@@ -46,6 +55,8 @@ class SharedState extends ChangeNotifier {
     final response = await httpClient.get(
       Uri.parse("http://$backendIp:3001/datas"),
     );
+
+    // Change this eventually to fit new data format
 
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
@@ -92,6 +103,10 @@ class SharedState extends ChangeNotifier {
   }
 
   void startRecording() async {
+    // May need to move this function
+    while (currentLocation == null) {}
+    _startingLocation = currentLocation;
+
     await _recorder.openRecorder();
     await _recorder.setSubscriptionDuration(
       const Duration(milliseconds: 100),
@@ -101,10 +116,50 @@ class SharedState extends ChangeNotifier {
       _duration = snapshot.duration;
       _decibels = snapshot.decibels!;
 
+      /* Sešlov method: Check for drastic spike and restart recodring
+      // Possible issues: Might not execute in time (needs simplification)
+      _decibelSum += decibels!;
+      _counter += 1;
+      
+      // After about 1 min of recording it starts comparing average to the predicted range
+      // If average exceeds range or current range has been recording for about 30 mins it will execute the code
+      if ((isOutOfRange(_decibelSum / _counter) && _counter >= 600) || _counter >= 18000) {
+        _avgDecibels = _decibelSum / _counter;
+        _endLocation = currentLocation;
+
+        // Calculate distance
+        _center = LatLng((_startingLocation!.latitude + _endLocation!.latitude) / 2, 
+                        (_startingLocation!.longitude + _endLocation!.longitude) / 2);
+
+        // Triangulate radius
+        double latDist = (_startingLocation!.latitude - _endLocation!.latitude).abs();
+        double longDist = (_startingLocation!.longitude - _endLocation!.longitude).abs();
+        _radius = sqrt((latDist*latDist) + (longDist*longDist)) / 2;
+
+        /* Needs to be done withou await
+        String? dataString = await dataToString(center, avgDecibels, radius);
+        if (dataString != null) {
+          sendData("noise/update", dataString);
+        }
+        */
+
+        // Reset values
+        _decibelSum = 0;
+        _counter = 0;
+        range = _avgDecibels;
+        _startingLocation = _endLocation;
+        _endLoacation = null;
+        _center = null;
+        _avgDecibels = null;
+      }
+      */
+
+      // Tristanov method:
       if (decibels! > (maxDecibels ?? 0)) {
         _maxDecibels = decibels;
         _maxDecibelsLocation = currentLocation;
       }
+
       notifyListeners();
     });
 
@@ -120,11 +175,19 @@ class SharedState extends ChangeNotifier {
     await _recorder.stopRecorder();
     await _recorder.closeRecorder();
 
+    /* New way: Need to add radius
+    String? dataString = await dataToString(center, avgDecibels, radius);
+    if (dataString != null) {
+      sendData("noise/update", dataString);
+    }
+    */
+
+    // Old way:
     String? dataString = await dataToString(maxDecibelsLocation, maxDecibels);
     if (dataString != null) {
       sendData("noise/update", dataString);
     }
-    
+
     notifyListeners();
   }
 
@@ -151,12 +214,69 @@ class SharedState extends ChangeNotifier {
     notifyListeners();
   }
 
+  double? get range => _range;
+  set range(double? decibels) {
+    if (decibels != null) {
+      if (decibels <= 50) {
+        _range = 0; // Green
+      } else if (50 < decibels && decibels <= 80) {
+        _range = 1; // Yellow
+      } else {
+        _range = 2; // Red
+      }
+    }
+  }
+
+  double? get avgDecibels => _avgDecibels;
+  LatLng? get center => _center;
+  double? get radius => _radius;
+
+  /* New way: Need to add radius
+  Future<String?> dataToString(LatLng? position, double? decibels, double? radius) async {
+    if (position != null && decibels != null && radius != null) {
+      return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()},"radius":${radius.toString()}}';
+    }
+
+    return null;
+  }
+  */
+
+  // Old way:
   Future<String?> dataToString(LatLng? position, double? decibels) async {
     if (position != null && decibels != null) {
       return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()}}';
     }
 
     return null;
+  }
+
+  // Might need to simplify
+  bool isOutOfRange(double decibels) {
+    // Current ranges:
+    //  < 50dB = Green
+    // 51dB - 80dB = Yellow
+    // 81db < = Red
+    if (range == 0) {
+      if (decibels <= 50) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (range == 2) {
+      if (50 < decibels && decibels <= 80) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (range == 3) {
+      if (80 < decibels) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+
+    return false;
   }
 
   // Initialize MQTT client
@@ -169,7 +289,6 @@ class SharedState extends ChangeNotifier {
     _client!.onSubscribeFail = _onSubscribeFail;
     _client!.onUnsubscribed = _onUnsubscribed;
     _client!.pongCallback = _pong;
-    //_client!.publishMessage("noise/update", , '{"latitude":${currentLocation.latitude},"longitude":1.0,}')
 
     final connMessage = MqttConnectMessage()
         .withClientIdentifier(clientId)
