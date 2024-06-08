@@ -32,7 +32,7 @@ class SharedState extends ChangeNotifier {
   double _counter = 0;
   double? _avgDecibels;
   double? _radius;
-  double? _range; // 0 = <=50 (Green), 1 = 51 - 80 (Yellow), 2 = 80< (Red)
+  double _range = 0; // 0 = <=50 (Green), 1 = 51 - 80 (Yellow), 2 = 80< (Red)
 
   Duration? _duration;
   double? _decibels;
@@ -105,6 +105,13 @@ class SharedState extends ChangeNotifier {
   }
 
   void startRecording() async {
+    // Reset values
+    _decibelSum = 0;
+    _counter = 0;
+    _endLocation = null;
+    _center = null;
+    _avgDecibels = null;
+
     // May need to move this function
     while (currentLocation == null) {}
     _startingLocation = currentLocation;
@@ -226,7 +233,7 @@ class SharedState extends ChangeNotifier {
     notifyListeners();
   }
 
-  double? get range => _range;
+  double get range => _range;
   set range(double? decibels) {
     if (decibels != null) {
       if (decibels <= 50) {
