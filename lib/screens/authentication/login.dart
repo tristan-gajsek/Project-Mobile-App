@@ -127,17 +127,22 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Future<void> uploadImage(String filePath) async {
-    var request = http.MultipartRequest('POST', Uri.parse('http://your_server_address:5000/face-recognition/authenticate'));
-    request.files.add(await http.MultipartFile.fromPath('image', selectedImage!.path));
+  Future<void> uploadImage(File imageFile) async {
+    var sharedState = Provider.of<SharedState>(
+      context,
+      listen: false,
+    );
+
+    var request = http.MultipartRequest('POST', Uri.parse('http://${sharedState.backendIp}:5000/face-recognition/authenticate'));
+    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
     
     var response = await request.send();
     if (response.statusCode == 200) {
       var responseData = await response.stream.bytesToString();
       var result = jsonDecode(responseData);
-      print(result['result']);
+      debugPrint(result['result']);
     } else {
-      print('Failed to upload image');
+      debugPrint('Failed to upload image');
     }
   }
 }
