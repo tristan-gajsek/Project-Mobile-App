@@ -78,6 +78,7 @@ class SharedState extends ChangeNotifier {
   SharedState() {
     Permission.microphone.request();
     _startPositionStream();
+    debugPrint('SharedState constructor: _client: $_client');
   }
 
   @override
@@ -292,6 +293,7 @@ class SharedState extends ChangeNotifier {
 
   // Initialize MQTT client
   Future<void> initializeMqtt(String server, String clientId) async {
+    debugPrint('MQTT Client Initialization');
     _client = MqttServerClient(server, clientId);
     _client!.logging(on: true);
     _client!.onConnected = _onConnected;
