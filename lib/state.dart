@@ -127,22 +127,28 @@ class SharedState extends ChangeNotifier {
 
       // Sešlov method: Check for drastic spike and restart recodring
       // Possible issues: Might not execute in time (needs simplification)
-      _decibelSum += decibels!;
-      _counter += 1;
-      
-      // After about 1 min of recording it starts comparing average to the predicted range
-      // If average exceeds range or current range has been recording for about 15 mins it will execute the code
-      if ((isOutOfRange(_decibelSum / _counter) && _counter >= 600) || _counter >= 9000) {
-        configVariables();
-      }
+      if (decibels != null) {
+        _decibelSum += decibels!;
+        _counter += 1;
+        _avgDecibels = _decibelSum / _counter;
 
-      /* Tristanov method:
-      if (decibels! > (maxDecibels ?? 0)) {
-        _maxDecibels = decibels;
-        _maxDecibelsLocation = currentLocation;
-      }
-      */
+        if (_counter == 500) {
+          range = _avgDecibels;
+        }
 
+        // After about 1 min of recording it starts comparing average to the predicted range
+        // If average exceeds range or current range has been recording for about 15 mins it will execute the code
+        if ((isOutOfRange(_avgDecibels!) && _counter >= 600) || _counter >= 9000) {
+          configVariables();
+        }
+
+        /* Tristanov method:
+        if (decibels! > (maxDecibels ?? 0)) {
+          _maxDecibels = decibels;
+          _maxDecibelsLocation = currentLocation;
+        }
+        */
+      }
       notifyListeners();
     });
 
@@ -158,13 +164,8 @@ class SharedState extends ChangeNotifier {
     await _recorder.stopRecorder();
     await _recorder.closeRecorder();
 
+    _avgDecibels = _decibelSum / _counter;
     configVariables();
-
-    // New way
-    String? dataString = dataToString(center, avgDecibels, radius, id);
-    if (dataString != null) {
-      sendData("noise/updates", dataString);
-    }
 
     /* Old way:
     String? dataString = await dataToString(maxDecibelsLocation, maxDecibels);
@@ -177,7 +178,7 @@ class SharedState extends ChangeNotifier {
   }
 
   void configVariables() {
-    _avgDecibels = _decibelSum / _counter;
+    //_avgDecibels = _decibelSum / _counter;
     _endLocation = currentLocation;
 
     // Calculate distance
@@ -276,19 +277,19 @@ class SharedState extends ChangeNotifier {
     // 51dB - 80dB = Yellow
     // 81db < = Red
     if (range == 0) {
-      if (decibels <= 50) {
+      if (decibels > 50) {
+        return true;
+      } else {
+        return false;
+      }
+    } else if (range == 1) {
+      if (50 >= decibels && decibels > 80) {
         return true;
       } else {
         return false;
       }
     } else if (range == 2) {
-      if (50 < decibels && decibels <= 80) {
-        return true;
-      } else {
-        return false;
-      }
-    } else if (range == 3) {
-      if (80 < decibels) {
+      if (80 >= decibels) {
         return true;
       } else {
         return false;
