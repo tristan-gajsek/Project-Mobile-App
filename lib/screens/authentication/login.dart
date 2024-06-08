@@ -69,6 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 listen: false,
               );
 
+              //await sharedState.initializeMqtt(sharedState.backendIp, 'flutter_client');
+
               final response = await sharedState.httpClient.post(
                 Uri.parse("http://${sharedState.backendIp}:3001/users/login"),
                 headers: {"Content-Type": "application/json; charset=UTF-8"},

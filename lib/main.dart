@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/screens/authentication/login.dart';
 import 'package:project_mobile_app/state.dart';
@@ -9,7 +10,7 @@ void main() {
   sharedState.initializeMqtt(sharedState.backendIp, 'flutter_client');
 
   runApp(ChangeNotifierProvider(
-    create: (context) => SharedState(),
+    create: (context) => sharedState,
     child: const App(),
   ));
 }

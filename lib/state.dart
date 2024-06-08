@@ -156,13 +156,13 @@ class SharedState extends ChangeNotifier {
     // New way
     String? dataString = dataToString(center, avgDecibels, radius, id);
     if (dataString != null) {
-      sendData("noise/update", dataString);
+      sendData("noise/updates", dataString);
     }
 
     /* Old way:
     String? dataString = await dataToString(maxDecibelsLocation, maxDecibels);
     if (dataString != null) {
-      sendData("noise/update", dataString);
+      sendData("noise/updates", dataString);
     }
     */
 
@@ -184,7 +184,7 @@ class SharedState extends ChangeNotifier {
 
     String? dataString = dataToString(center, avgDecibels, radius, id);
     if (dataString != null) {
-      sendData("noise/update", dataString);
+      sendData("noise/updates", dataString);
     }
 
     // Reset values
@@ -246,7 +246,7 @@ class SharedState extends ChangeNotifier {
   // New way: Need to add radius
   String? dataToString(LatLng? position, double? decibels, double? radius, String? id) {
     if (position != null && decibels != null && radius != null && id != null) {
-      return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()},"radius":${radius.toString()}, "id":$id}';
+      return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()},"radius":${radius.toString()}, "id":"$id"}';
     }
 
     return null;
@@ -293,8 +293,9 @@ class SharedState extends ChangeNotifier {
 
   // Initialize MQTT client
   Future<void> initializeMqtt(String server, String clientId) async {
-    debugPrint('MQTT Client Initialization');
-    _client = MqttServerClient(server, clientId);
+    debugPrint('MQTT Client Initialization on server: $server');
+    _client = MqttServerClient.withPort(server, clientId, 1883);
+    //_client!.port = 8888;
     _client!.logging(on: true);
     _client!.onConnected = _onConnected;
     _client!.onDisconnected = _onDisconnected;
@@ -306,7 +307,7 @@ class SharedState extends ChangeNotifier {
     final connMessage = MqttConnectMessage()
         .withClientIdentifier(clientId)
         .startClean()
-        .withWillQos(MqttQos.atLeastOnce);
+        .withWillQos(MqttQos.atMostOnce);
     _client!.connectionMessage = connMessage;
 
     try {
