@@ -123,8 +123,8 @@ class SharedState extends ChangeNotifier {
       _counter += 1;
       
       // After about 1 min of recording it starts comparing average to the predicted range
-      // If average exceeds range or current range has been recording for about 30 mins it will execute the code
-      if ((isOutOfRange(_decibelSum / _counter) && _counter >= 600) || _counter >= 18000) {
+      // If average exceeds range or current range has been recording for about 15 mins it will execute the code
+      if ((isOutOfRange(_decibelSum / _counter) && _counter >= 600) || _counter >= 9000) {
         _avgDecibels = _decibelSum / _counter;
         _endLocation = currentLocation;
 
@@ -177,7 +177,7 @@ class SharedState extends ChangeNotifier {
     await _recorder.closeRecorder();
 
     // New way: Need to add radius
-    String? dataString = await dataToString(center, avgDecibels, radius);
+    String? dataString = await dataToString(center, avgDecibels, radius, id);
     if (dataString != null) {
       sendData("noise/update", dataString);
     }
@@ -239,9 +239,9 @@ class SharedState extends ChangeNotifier {
   double? get radius => _radius;
 
   // New way: Need to add radius
-  Future<String?> dataToString(LatLng? position, double? decibels, double? radius) async {
-    if (position != null && decibels != null && radius != null) {
-      return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()},"radius":${radius.toString()}}';
+  Future<String?> dataToString(LatLng? position, double? decibels, double? radius, String? id) async {
+    if (position != null && decibels != null && radius != null && id != null) {
+      return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()},"radius":${radius.toString()}, "id":$id}';
     }
 
     return null;
