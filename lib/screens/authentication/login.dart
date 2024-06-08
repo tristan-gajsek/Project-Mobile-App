@@ -83,44 +83,45 @@ class _LoginScreenState extends State<LoginScreen> {
               if (selectedImage != null) {
                 debugPrint("Image selected: ${selectedImage.path}");
                 debugPrint("Sent username: ${usernameController.text}");
-                uploadImage(selectedImage, usernameController.text);
-              }
+                int uploadResult = await uploadImage(selectedImage, usernameController.text);
+                if (uploadResult == 1) {
+                    //await sharedState.initializeMqtt(sharedState.backendIp, 'flutter_client');
 
-              //await sharedState.initializeMqtt(sharedState.backendIp, 'flutter_client');
+                    final response = await sharedState.httpClient.post(
+                      Uri.parse("http://${sharedState.backendIp}:3001/users/login"),
+                      headers: {"Content-Type": "application/json; charset=UTF-8"},
+                      body: jsonEncode({
+                        "username": usernameController.text,
+                        "password": passwordController.text,
+                      }),
+                    );
 
-              final response = await sharedState.httpClient.post(
-                Uri.parse("http://${sharedState.backendIp}:3001/users/login"),
-                headers: {"Content-Type": "application/json; charset=UTF-8"},
-                body: jsonEncode({
-                  "username": usernameController.text,
-                  "password": passwordController.text,
-                }),
-              );
-
-              if (response.statusCode == 200) {
-                final data = jsonDecode(response.body);
-                if (data["_id"] != null) {
-                  sharedState.email = data["email"];
-                  sharedState.username = data["username"];
-                  sharedState.id = data["_id"];
-                  Navigator.push(
+                    if (response.statusCode == 200) {
+                    final data = jsonDecode(response.body);
+                    if (data["_id"] != null) {
+                      sharedState.email = data["email"];
+                      sharedState.username = data["username"];
+                      sharedState.id = data["_id"];
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileScreen(),
+                        ),
+                      );
+                      return;
+                    }
+                  }
+                } else {
+                  usernameController.clear();
+                  passwordController.clear();
+                  showCustomDialog(
                     context,
-                    MaterialPageRoute(
-                      builder: (context) => const ProfileScreen(),
-                    ),
+                    "Login Failed",
+                    "Username or password was incorrect.",
+                    "OK",
                   );
-                  return;
                 }
               }
-
-              usernameController.clear();
-              passwordController.clear();
-              showCustomDialog(
-                context,
-                "Login Failed",
-                "Username or password was incorrect.",
-                "OK",
-              );
             },
           ),
         ],
@@ -128,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Future<void> uploadImage(File imageFile, String username) async {
+  Future<int> uploadImage(File imageFile, String username) async {
     var sharedState = Provider.of<SharedState>(
       context,
       listen: false,
@@ -143,12 +144,19 @@ class _LoginScreenState extends State<LoginScreen> {
       var responseData = await response.stream.bytesToString();
       var result = jsonDecode(responseData);
       debugPrint(result['result']);
+      if (result['result'] == '1') {
+        return 1;
+      } else {
+        return 0;
+      }
     } else if (response.statusCode == 400) {
       var responseData = await response.stream.bytesToString();
       var result = jsonDecode(responseData);
       debugPrint(result['error']);
+      return 0;
     } else {
       debugPrint('Failed to upload image');
+      return 0;
     }
 
   }
