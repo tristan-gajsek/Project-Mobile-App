@@ -30,14 +30,20 @@ class _CameraScreenState extends State<CameraScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           ElevatedButton(
-            onPressed: () {
-              _pickImageFromGallery();
+            onPressed: () async{
+              await _pickImageFromGallery();
+              if (_selectedImage != null) {
+                Navigator.pop(context, _selectedImage);
+              }
             },
             child: const Text('Select image from galery'),
           ),
           ElevatedButton(
-            onPressed: () {
-              _pickImageFromCamera();
+            onPressed: () async {
+              await _pickImageFromCamera();
+              if (_selectedImage != null) {
+                Navigator.pop(context, _selectedImage);
+              }
             },
             child: const Text('Take image with camera'),
           ),

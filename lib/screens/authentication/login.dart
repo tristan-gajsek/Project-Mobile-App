@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/components/dialog.dart';
 import 'package:project_mobile_app/screens/app/profile.dart';
+import 'package:project_mobile_app/screens/authentication/camera.dart';
 import 'package:project_mobile_app/screens/authentication/registration.dart';
 import 'package:project_mobile_app/components/buttons.dart';
 import 'package:project_mobile_app/components/text_field.dart';
@@ -68,6 +70,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 context,
                 listen: false,
               );
+
+              // Call the CameraScreen and wait for it to finish
+              File ? selectedImage = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CameraScreen(),
+                ),
+              );
+
+              if (selectedImage != null) {
+                debugPrint("Image selected: ${selectedImage.path}");
+              }
 
               //await sharedState.initializeMqtt(sharedState.backendIp, 'flutter_client');
 
