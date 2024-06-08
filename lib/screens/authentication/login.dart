@@ -82,7 +82,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
               if (selectedImage != null) {
                 debugPrint("Image selected: ${selectedImage.path}");
-                uploadImage(selectedImage.path);
+                debugPrint("Sent username: ${usernameController.text}");
+                uploadImage(selectedImage, usernameController.text);
               }
 
               //await sharedState.initializeMqtt(sharedState.backendIp, 'flutter_client');
@@ -127,13 +128,14 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Future<void> uploadImage(File imageFile) async {
+  Future<void> uploadImage(File imageFile, String username) async {
     var sharedState = Provider.of<SharedState>(
       context,
       listen: false,
     );
 
     var request = http.MultipartRequest('POST', Uri.parse('http://${sharedState.backendIp}:5000/face-recognition/authenticate'));
+    request.fields['user'] = username;
     request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
     
     var response = await request.send();
@@ -141,8 +143,13 @@ class _LoginScreenState extends State<LoginScreen> {
       var responseData = await response.stream.bytesToString();
       var result = jsonDecode(responseData);
       debugPrint(result['result']);
+    } else if (response.statusCode == 400) {
+      var responseData = await response.stream.bytesToString();
+      var result = jsonDecode(responseData);
+      debugPrint(result['error']);
     } else {
       debugPrint('Failed to upload image');
     }
+
   }
 }
