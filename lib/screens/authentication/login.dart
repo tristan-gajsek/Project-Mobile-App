@@ -83,6 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (data["_id"] != null) {
                   sharedState.email = data["email"];
                   sharedState.username = data["username"];
+                  sharedState.id = data["_id"];
                   Navigator.push(
                     context,
                     MaterialPageRoute(

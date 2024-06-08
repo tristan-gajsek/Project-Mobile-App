@@ -20,6 +20,7 @@ class SharedState extends ChangeNotifier {
 
   String? _email;
   String? _username;
+  String? _id;
 
   LatLng? _currentLocation;
 
@@ -116,7 +117,7 @@ class SharedState extends ChangeNotifier {
       _duration = snapshot.duration;
       _decibels = snapshot.decibels!;
 
-      /* Sešlov method: Check for drastic spike and restart recodring
+      // Sešlov method: Check for drastic spike and restart recodring
       // Possible issues: Might not execute in time (needs simplification)
       _decibelSum += decibels!;
       _counter += 1;
@@ -148,17 +149,17 @@ class SharedState extends ChangeNotifier {
         _counter = 0;
         range = _avgDecibels;
         _startingLocation = _endLocation;
-        _endLoacation = null;
+        _endLocation = null;
         _center = null;
         _avgDecibels = null;
       }
-      */
 
-      // Tristanov method:
+      /* Tristanov method:
       if (decibels! > (maxDecibels ?? 0)) {
         _maxDecibels = decibels;
         _maxDecibelsLocation = currentLocation;
       }
+      */
 
       notifyListeners();
     });
@@ -175,18 +176,18 @@ class SharedState extends ChangeNotifier {
     await _recorder.stopRecorder();
     await _recorder.closeRecorder();
 
-    /* New way: Need to add radius
+    // New way: Need to add radius
     String? dataString = await dataToString(center, avgDecibels, radius);
     if (dataString != null) {
       sendData("noise/update", dataString);
     }
-    */
 
-    // Old way:
+    /* Old way:
     String? dataString = await dataToString(maxDecibelsLocation, maxDecibels);
     if (dataString != null) {
       sendData("noise/update", dataString);
     }
+    */
 
     notifyListeners();
   }
@@ -200,6 +201,12 @@ class SharedState extends ChangeNotifier {
   String? get email => _email;
   set email(String? email) {
     _email = email;
+    notifyListeners();
+  }
+
+  String? get id => _id;
+  set id(String? id) {
+    _id = id;
     notifyListeners();
   }
 
@@ -231,7 +238,7 @@ class SharedState extends ChangeNotifier {
   LatLng? get center => _center;
   double? get radius => _radius;
 
-  /* New way: Need to add radius
+  // New way: Need to add radius
   Future<String?> dataToString(LatLng? position, double? decibels, double? radius) async {
     if (position != null && decibels != null && radius != null) {
       return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()},"radius":${radius.toString()}}';
@@ -239,9 +246,8 @@ class SharedState extends ChangeNotifier {
 
     return null;
   }
-  */
 
-  // Old way:
+  /* Old way:
   Future<String?> dataToString(LatLng? position, double? decibels) async {
     if (position != null && decibels != null) {
       return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()}}';
@@ -249,6 +255,7 @@ class SharedState extends ChangeNotifier {
 
     return null;
   }
+  */
 
   // Might need to simplify
   bool isOutOfRange(double decibels) {
