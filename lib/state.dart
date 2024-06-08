@@ -137,12 +137,10 @@ class SharedState extends ChangeNotifier {
         double longDist = (_startingLocation!.longitude - _endLocation!.longitude).abs();
         _radius = sqrt((latDist*latDist) + (longDist*longDist)) / 2;
 
-        /* Needs to be done withou await
-        String? dataString = await dataToString(center, avgDecibels, radius);
+        String? dataString = dataToString(center, avgDecibels, radius, id);
         if (dataString != null) {
           sendData("noise/update", dataString);
         }
-        */
 
         // Reset values
         _decibelSum = 0;
@@ -177,7 +175,7 @@ class SharedState extends ChangeNotifier {
     await _recorder.closeRecorder();
 
     // New way: Need to add radius
-    String? dataString = await dataToString(center, avgDecibels, radius, id);
+    String? dataString = dataToString(center, avgDecibels, radius, id);
     if (dataString != null) {
       sendData("noise/update", dataString);
     }
@@ -239,7 +237,7 @@ class SharedState extends ChangeNotifier {
   double? get radius => _radius;
 
   // New way: Need to add radius
-  Future<String?> dataToString(LatLng? position, double? decibels, double? radius, String? id) async {
+  String? dataToString(LatLng? position, double? decibels, double? radius, String? id) {
     if (position != null && decibels != null && radius != null && id != null) {
       return '{"latitude":${position.latitude},"longitude":${position.longitude},"decibels":${decibels.toString()},"radius":${radius.toString()}, "id":$id}';
     }
