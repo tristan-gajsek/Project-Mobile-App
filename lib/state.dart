@@ -125,31 +125,7 @@ class SharedState extends ChangeNotifier {
       // After about 1 min of recording it starts comparing average to the predicted range
       // If average exceeds range or current range has been recording for about 15 mins it will execute the code
       if ((isOutOfRange(_decibelSum / _counter) && _counter >= 600) || _counter >= 9000) {
-        _avgDecibels = _decibelSum / _counter;
-        _endLocation = currentLocation;
-
-        // Calculate distance
-        _center = LatLng((_startingLocation!.latitude + _endLocation!.latitude) / 2, 
-                        (_startingLocation!.longitude + _endLocation!.longitude) / 2);
-
-        // Triangulate radius
-        double latDist = (_startingLocation!.latitude - _endLocation!.latitude).abs();
-        double longDist = (_startingLocation!.longitude - _endLocation!.longitude).abs();
-        _radius = sqrt((latDist*latDist) + (longDist*longDist)) / 2;
-
-        String? dataString = dataToString(center, avgDecibels, radius, id);
-        if (dataString != null) {
-          sendData("noise/update", dataString);
-        }
-
-        // Reset values
-        _decibelSum = 0;
-        _counter = 0;
-        range = _avgDecibels;
-        _startingLocation = _endLocation;
-        _endLocation = null;
-        _center = null;
-        _avgDecibels = null;
+        configVariables();
       }
 
       /* Tristanov method:
@@ -174,7 +150,9 @@ class SharedState extends ChangeNotifier {
     await _recorder.stopRecorder();
     await _recorder.closeRecorder();
 
-    // New way: Need to add radius
+    configVariables();
+
+    // New way
     String? dataString = dataToString(center, avgDecibels, radius, id);
     if (dataString != null) {
       sendData("noise/update", dataString);
@@ -188,6 +166,34 @@ class SharedState extends ChangeNotifier {
     */
 
     notifyListeners();
+  }
+
+  void configVariables() {
+    _avgDecibels = _decibelSum / _counter;
+    _endLocation = currentLocation;
+
+    // Calculate distance
+    _center = LatLng((_startingLocation!.latitude + _endLocation!.latitude) / 2, 
+                    (_startingLocation!.longitude + _endLocation!.longitude) / 2);
+
+    // Triangulate radius
+    double latDist = (_startingLocation!.latitude - _endLocation!.latitude).abs();
+    double longDist = (_startingLocation!.longitude - _endLocation!.longitude).abs();
+    _radius = sqrt((latDist*latDist) + (longDist*longDist)) / 2;
+
+    String? dataString = dataToString(center, avgDecibels, radius, id);
+    if (dataString != null) {
+      sendData("noise/update", dataString);
+    }
+
+    // Reset values
+    _decibelSum = 0;
+    _counter = 0;
+    range = _avgDecibels;
+    _startingLocation = _endLocation;
+    _endLocation = null;
+    _center = null;
+    _avgDecibels = null;
   }
 
   String? get username => _username;
@@ -339,8 +345,13 @@ class SharedState extends ChangeNotifier {
 
   // Method to send data to a topic
   void sendData(String topic, String message) {
+    debugPrint('Publishing message $message');
     final builder = MqttClientPayloadBuilder();
     builder.addString(message);
-    _client!.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+    if (_client != null) {
+      _client!.publishMessage(topic, MqttQos.atLeastOnce, builder.payload!);
+    } else {
+      debugPrint('The client is null');
+    }
   }
 }

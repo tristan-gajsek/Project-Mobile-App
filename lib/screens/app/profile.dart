@@ -63,7 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             """
             Duration: ${sharedState.duration}ms
             Decibels: ${sharedState.decibels}
-            Max decibels: ${sharedState.maxDecibels ?? 0}
+            Average decibels: ${sharedState.avgDecibels ?? 0}
             """
                 .replaceAll(RegExp(r"^\s+", multiLine: true), ""),
           ),
