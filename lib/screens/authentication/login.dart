@@ -22,6 +22,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
+  File ? selectedImage;
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               if (selectedImage != null) {
                 debugPrint("Image selected: ${selectedImage.path}");
+                uploadImage(selectedImage.path);
               }
 
               //await sharedState.initializeMqtt(sharedState.backendIp, 'flutter_client');
@@ -123,5 +125,19 @@ class _LoginScreenState extends State<LoginScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> uploadImage(String filePath) async {
+    var request = http.MultipartRequest('POST', Uri.parse('http://your_server_address:5000/face-recognition/authenticate'));
+    request.files.add(await http.MultipartFile.fromPath('image', selectedImage!.path));
+    
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      var responseData = await response.stream.bytesToString();
+      var result = jsonDecode(responseData);
+      print(result['result']);
+    } else {
+      print('Failed to upload image');
+    }
   }
 }
