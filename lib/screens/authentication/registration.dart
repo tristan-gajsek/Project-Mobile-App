@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/components/dialog.dart';
 import 'package:project_mobile_app/screens/app/profile.dart';
 import 'package:project_mobile_app/screens/authentication/login.dart';
+import 'package:project_mobile_app/screens/authentication/video.dart';
 import 'package:project_mobile_app/components/buttons.dart';
 import 'package:project_mobile_app/components/text_field.dart';
 import 'package:project_mobile_app/state.dart';
@@ -21,6 +23,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final emailController = TextEditingController();
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
+  File? selectedVideo;
+  var result;
+
+  Future<void> uploadVideo(File image) async {
+    var sharedState = Provider.of<SharedState>(
+      context,
+      listen: false,
+    );
+
+    var request = http.MultipartRequest('POST', Uri.parse('http://${sharedState.backendIp}:5000/face-recognition/authenticate'));
+    request.fields['purpose'] = 'train';
+    // debugPrint("USER ID: $userId");
+    request.files.add(await http.MultipartFile.fromPath('image', image.path));
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      var responseData = await response.stream.bytesToString();
+      result = jsonDecode(responseData);
+      debugPrint(result['result']);
+      return;
+    } else {
+      debugPrint("API RETURNED ERROR");
+      return;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,11 +118,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 }),
               );
 
+              File ? selectedVideo = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const VideoScreen(),
+                ),
+              );
+
               if (response.statusCode == 201) {
                 final data = jsonDecode(response.body);
                 if (data["_id"] != null) {
                   sharedState.email = data["email"];
                   sharedState.username = data["username"];
+                  //uploadVideo(selectedVideo!);
                   Navigator.push(
                     context,
                     MaterialPageRoute(

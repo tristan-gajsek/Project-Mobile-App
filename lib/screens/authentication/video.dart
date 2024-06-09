@@ -36,7 +36,7 @@ class _VideoScreenState extends State<VideoScreen> {
                 Navigator.pop(context, _selectedVideo);
               }
             },
-            child: const Text('Select image from gallery'),
+            child: const Text('Select video from gallery'),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -45,10 +45,10 @@ class _VideoScreenState extends State<VideoScreen> {
                 Navigator.pop(context, _selectedVideo);
               }
             },
-            child: const Text('Take image with camera'),
+            child: const Text('Take video with camera'),
           ),
           const SizedBox(height: 20,),
-          _selectedVideo == null ? const Text('No image selected') : Image.file(_selectedVideo!),
+          _selectedVideo == null ? const Text('No video selected') : Image.file(_selectedVideo!),
         ],
       ),
       ), 
