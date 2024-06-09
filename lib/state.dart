@@ -35,8 +35,8 @@ class SharedState extends ChangeNotifier {
   double? _radius;
   double _range = 0; // 0 = <=45 (Green), 1 = 46 - 70 (Yellow), 2 = 70< (Red)
 
-  final _lowerLim = 45;
-  final _upperLim = 70;
+  final _lowerLim = 50;
+  final _upperLim = 80;
 
 
   Duration? _duration;
