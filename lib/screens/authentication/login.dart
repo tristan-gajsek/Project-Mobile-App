@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:project_mobile_app/components/dialog.dart';
 import 'package:project_mobile_app/screens/app/profile.dart';
@@ -22,7 +21,67 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
-  File ? selectedImage;
+  File? selectedImage;
+  String? userId; // Variable to store the user's ID
+  var result;
+
+  Future<void> login() async {
+
+    var sharedState = Provider.of<SharedState>(
+      context,
+      listen: false,
+    );
+
+    final response = await http.post(
+      Uri.parse("http://${sharedState.backendIp}:3001/users/login"),
+      body: {
+        'username': usernameController.text,
+        'password': passwordController.text,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data["_id"] != null) {
+        sharedState.email = data["email"];
+        sharedState.username = data["username"];
+        sharedState.id = data["_id"];
+        userId = data['_id']; // Set local var userId for use in uploadImage
+      }
+
+    } else {
+      showCustomDialog(context, "Login failed.", "Please try again.", "OK");
+    }
+  }
+
+  Future<void> uploadImage(File image) async {
+    if (userId == null) {
+      showCustomDialog(context, "Login failed.", "User ID not available.", "OK");
+      return;
+    }
+
+    var sharedState = Provider.of<SharedState>(
+      context,
+      listen: false,
+    );
+
+    var request = http.MultipartRequest('POST', Uri.parse('http://${sharedState.backendIp}:5000/face-recognition/authenticate'));
+    request.fields['user'] = userId!;
+    debugPrint("USER ID: $userId");
+    request.files.add(await http.MultipartFile.fromPath('image', image.path));
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      var responseData = await response.stream.bytesToString();
+      result = jsonDecode(responseData);
+      debugPrint(result['result']);
+      return;
+    } else {
+      debugPrint("API RETURNED ERROR");
+      return;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,23 +115,13 @@ class _LoginScreenState extends State<LoginScreen> {
           CustomButton(
             text: "Log in",
             onPressed: () async {
-              if (usernameController.text.isEmpty ||
-                  passwordController.text.isEmpty) {
-                showCustomDialog(
-                  context,
-                  "Login Failed",
-                  "Make sure to fill out everything.",
-                  "OK",
-                );
+              if (usernameController.text.isEmpty || passwordController.text.isEmpty) {
+                showCustomDialog(context, "Login failed.", "Please fill in both fields.", "OK");
                 return;
               }
 
-              var sharedState = Provider.of<SharedState>(
-                context,
-                listen: false,
-              );
+              await login();
 
-              // Call the CameraScreen and wait for it to finish
               File ? selectedImage = await Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -81,83 +130,26 @@ class _LoginScreenState extends State<LoginScreen> {
               );
 
               if (selectedImage != null) {
-                debugPrint("Image selected: ${selectedImage.path}");
-                debugPrint("Sent username: ${usernameController.text}");
-                int uploadResult = await uploadImage(selectedImage, usernameController.text);
-                if (uploadResult == 1) {
-                    //await sharedState.initializeMqtt(sharedState.backendIp, 'flutter_client');
-
-                    final response = await sharedState.httpClient.post(
-                      Uri.parse("http://${sharedState.backendIp}:3001/users/login"),
-                      headers: {"Content-Type": "application/json; charset=UTF-8"},
-                      body: jsonEncode({
-                        "username": usernameController.text,
-                        "password": passwordController.text,
-                      }),
-                    );
-
-                    if (response.statusCode == 200) {
-                    final data = jsonDecode(response.body);
-                    if (data["_id"] != null) {
-                      sharedState.email = data["email"];
-                      sharedState.username = data["username"];
-                      sharedState.id = data["_id"];
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileScreen(),
-                        ),
-                      );
-                      return;
-                    }
-                  }
-                } else {
-                  usernameController.clear();
-                  passwordController.clear();
-                  showCustomDialog(
+                await uploadImage(selectedImage);
+                //debugPrint("RESULT AT NAV PUSH: $result");
+                if (result['result'] == "1")
+                {
+                  Navigator.pushReplacement(
                     context,
-                    "Login Failed",
-                    "Username or password was incorrect.",
-                    "OK",
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
                   );
                 }
-              }
+                else
+                {
+                  showCustomDialog(context, "Face authentication failed.", "Please try again.", "OK");
+                }
+                }
             },
           ),
         ],
       ),
     );
-  }
-
-  Future<int> uploadImage(File imageFile, String username) async {
-    var sharedState = Provider.of<SharedState>(
-      context,
-      listen: false,
-    );
-
-    var request = http.MultipartRequest('POST', Uri.parse('http://${sharedState.backendIp}:5000/face-recognition/authenticate'));
-    request.fields['user'] = username;
-    request.files.add(await http.MultipartFile.fromPath('image', imageFile.path));
-    
-    var response = await request.send();
-    if (response.statusCode == 200) {
-      var responseData = await response.stream.bytesToString();
-      var result = jsonDecode(responseData);
-      debugPrint(result['result']);
-      if (result['result'] == '1') {
-        return 1;
-      } else {
-        return 0;
-      }
-    } else if (response.statusCode == 400) {
-      var responseData = await response.stream.bytesToString();
-      var result = jsonDecode(responseData);
-      debugPrint(result['error']);
-      return 0;
-    } else {
-      debugPrint('Failed to upload image');
-      return 0;
-    }
-
   }
 }
