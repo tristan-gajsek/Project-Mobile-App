@@ -94,8 +94,9 @@ CircleLayer circleLayer(SharedState sharedState) {
   for (var noise in sharedState.noises) {
     circles.add(CircleMarker(
       point: noise.location,
-      radius: noise.radius,
+      radius: noise.radius * 111320,
       color: noise.color,
+      useRadiusInMeter: true,
     ));
   }
   return CircleLayer(circles: circles);
