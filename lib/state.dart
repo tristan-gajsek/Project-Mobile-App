@@ -30,6 +30,7 @@ class SharedState extends ChangeNotifier {
   LatLng? _center;
   double _decibelSum = 0;
   double _counter = 0;
+  double _subCounter = 0;
   double? _avgDecibels;
   double? _radius;
   double _range = 0; // 0 = <=45 (Green), 1 = 46 - 70 (Yellow), 2 = 70< (Red)
@@ -122,6 +123,7 @@ class SharedState extends ChangeNotifier {
     // Reset values
     _decibelSum = 0;
     _counter = 0;
+    _subCounter = 0;
     _endLocation = null;
     _center = null;
     _avgDecibels = null;
@@ -132,7 +134,7 @@ class SharedState extends ChangeNotifier {
 
     await _recorder.openRecorder();
     await _recorder.setSubscriptionDuration(
-      const Duration(milliseconds: 200),
+      const Duration(milliseconds: 100),
     );
 
     _recordingStream = _recorder.onProgress?.listen((snapshot) {
@@ -144,17 +146,24 @@ class SharedState extends ChangeNotifier {
       if (decibels != null) {
         _decibelSum += decibels!;
         _counter += 1;
+        _subCounter += 1;
 
-        if (_counter >= 50 && _counter <= 55) {
+        if (_counter >= 100 && _counter <= 105) {
           range = _avgDecibels;
         }
 
         // After about 30 sec of recording it starts comparing average to the predicted range
         // If average exceeds range or current range has been recording for about 15 mins it will execute the code
-        if ((isOutOfRange(_decibelSum / _counter) && _counter >= 150) || _counter >= 4500) {
+        if ((isOutOfRange(_decibelSum / _subCounter) && _counter >= 300) || _counter >= 9000) {
           configVariables();
         } else {
-          _avgDecibels = _decibelSum / _counter;
+          _avgDecibels = _decibelSum / _subCounter;
+
+          if (_subCounter >= 150) {
+            _avgDecibels ??= _decibelSum / _subCounter;
+            _subCounter = 1;
+            _decibelSum = _avgDecibels!;
+          }
         }
 
         /* Tristanov method:
@@ -193,7 +202,7 @@ class SharedState extends ChangeNotifier {
   }
 
   void configVariables() {
-    //_avgDecibels = _decibelSum / _counter;
+    //_avgDecibels = _decibelSum / _subCounter;
     _endLocation = currentLocation;
 
     // Calculate distance
@@ -205,16 +214,17 @@ class SharedState extends ChangeNotifier {
     double longDist = (_startingLocation!.longitude - _endLocation!.longitude).abs();
     _radius = sqrt((latDist*latDist) + (longDist*longDist)) / 2;
 
-    _avgDecibels ??= (_decibelSum / _counter) - 1;
+    _avgDecibels ??= (_decibelSum / _subCounter) - 1;
     String? dataString = dataToString(center, avgDecibels, radius, id);
     if (dataString != null) {
       sendData("noise/updates", dataString);
     }
 
     // Reset values
+    _avgDecibels = _decibelSum / _subCounter;
     _decibelSum = 0;
     _counter = 0;
-    _avgDecibels = _decibelSum / _counter;
+    _subCounter = 0;
     range = _avgDecibels;
     _startingLocation = _endLocation;
     _endLocation = null;
