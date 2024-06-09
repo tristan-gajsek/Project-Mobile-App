@@ -23,7 +23,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final passwordController = TextEditingController();
   File? selectedImage;
   String? userId; // Variable to store the user's ID
-  var result;
+  var result; // Variable to store the result of the face recognition API
+  bool _isLoading = false; // Variable to track loading state
 
   Future<void> login() async {
 
@@ -92,7 +93,9 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Text("Login"),
         ),
       ),
-      body: Column(
+      body: _isLoading
+        ? Center(child: CircularProgressIndicator())
+      :Column(
         children: [
           CustomTextField(
             controller: usernameController,
@@ -121,6 +124,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 return;
               }
 
+              setState(() {
+                _isLoading = true;
+              });                    
+
               await login();
 
               File ? selectedImage = await Navigator.push(
@@ -133,20 +140,21 @@ class _LoginScreenState extends State<LoginScreen> {
               if (selectedImage != null) {
                 await uploadImage(selectedImage);
                 //debugPrint("RESULT AT NAV PUSH: $result");
-                if (result['result'] == "1")
-                {
+                if (result['result'] == "1") {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const ProfileScreen(),
                     ),
                   );
-                }
-                else
-                {
+                } else {
                   showCustomDialog(context, "Face authentication failed.", "Please try again.", "OK");
                 }
-                }
+              }
+
+              setState(() {
+                _isLoading = false; // Stop loading
+              });
             },
           ),
         ],
