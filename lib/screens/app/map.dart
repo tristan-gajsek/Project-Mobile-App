@@ -81,7 +81,7 @@ MarkerLayer markerLayer(LatLng? currentLocation) {
         alignment: Alignment.topCenter,
         child: const Icon(
           Icons.location_pin,
-          color: Colors.red,
+          color: Color.fromRGBO(50, 50, 255, 0.5),
           size: 40,
         ),
       )
@@ -94,8 +94,8 @@ CircleLayer circleLayer(SharedState sharedState) {
   for (var noise in sharedState.noises) {
     circles.add(CircleMarker(
       point: noise.location,
-      radius: noise.decibels,
-      color: Colors.red.withOpacity(0.5),
+      radius: noise.radius,
+      color: noise.color,
     ));
   }
   return CircleLayer(circles: circles);

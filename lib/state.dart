@@ -62,12 +62,22 @@ class SharedState extends ChangeNotifier {
     if (response.statusCode == 200) {
       List<dynamic> data = jsonDecode(response.body);
       for (var noise in data) {
+        double noiseDecibels = noise["decibels"].toDouble();
+        Color noiseColor = const Color.fromRGBO(255, 0, 0, 0.5);
+        if (noiseDecibels <= 50) {
+          noiseColor = const Color.fromRGBO(0, 255, 0, 0.5); // Green
+        } else if (50 < noiseDecibels && noiseDecibels <= 80) {
+          noiseColor = const Color.fromRGBO(255, 255, 0, 0.5); // Yellow
+        } 
+
         _noises.add(Noise(
           LatLng(
             noise["latitude"].toDouble(),
             noise["longitude"].toDouble(),
           ),
-          noise["decibels"].toDouble(),
+          noiseDecibels,
+          noise["radius"].toDouble(),
+          noiseColor,
         ));
       }
       notifyListeners();
