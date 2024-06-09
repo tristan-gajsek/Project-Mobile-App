@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
         sharedState.email = data["email"];
         sharedState.username = data["username"];
         sharedState.id = data["_id"];
-        userId = data['_id']; // Set local var userId for use in uploadImage
+        // userId = data["_id"]; // Set local var userId for use in uploadImage
       }
 
     } else {
@@ -56,8 +56,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> uploadImage(File image) async {
-    if (userId == null) {
-      showCustomDialog(context, "Login failed.", "User ID not available.", "OK");
+    if (usernameController.text == "") {
+      showCustomDialog(context, "Login failed.", "Username empty.", "OK");
       return;
     }
 
@@ -67,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
 
     var request = http.MultipartRequest('POST', Uri.parse('http://${sharedState.backendIp}:5000/face-recognition/authenticate'));
-    request.fields['user'] = userId!;
+    request.fields['user'] = usernameController.text;
     request.fields['purpose'] = 'auth';
     // debugPrint("USER ID: $userId");
     request.files.add(await http.MultipartFile.fromPath('image', image.path));
@@ -80,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint(result['result']);
       return;
     } else {
-      debugPrint("API RETURNED ERROR");
+      debugPrint("ERROR: $result");
       return;
     }
   }
