@@ -67,7 +67,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     var request = http.MultipartRequest('POST', Uri.parse('http://${sharedState.backendIp}:5000/face-recognition/authenticate'));
     request.fields['user'] = userId!;
-    debugPrint("USER ID: $userId");
+    request.fields['purpose'] = 'auth';
+    // debugPrint("USER ID: $userId");
     request.files.add(await http.MultipartFile.fromPath('image', image.path));
 
     final response = await request.send();
