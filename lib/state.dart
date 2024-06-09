@@ -132,7 +132,7 @@ class SharedState extends ChangeNotifier {
 
     await _recorder.openRecorder();
     await _recorder.setSubscriptionDuration(
-      const Duration(milliseconds: 100),
+      const Duration(milliseconds: 200),
     );
 
     _recordingStream = _recorder.onProgress?.listen((snapshot) {
@@ -145,14 +145,16 @@ class SharedState extends ChangeNotifier {
         _decibelSum += decibels!;
         _counter += 1;
 
-        if (_counter >= 100 && _counter <= 105) {
+        if (_counter >= 50 && _counter <= 55) {
           range = _avgDecibels;
         }
 
         // After about 30 sec of recording it starts comparing average to the predicted range
         // If average exceeds range or current range has been recording for about 15 mins it will execute the code
-        if ((isOutOfRange(_decibelSum / _counter) && _counter >= 300) || _counter >= 9000) {
+        if ((isOutOfRange(_decibelSum / _counter) && _counter >= 150) || _counter >= 4500) {
           configVariables();
+        } else {
+          _avgDecibels = _decibelSum / _counter;
         }
 
         /* Tristanov method:
@@ -212,11 +214,11 @@ class SharedState extends ChangeNotifier {
     // Reset values
     _decibelSum = 0;
     _counter = 0;
+    _avgDecibels = _decibelSum / _counter;
     range = _avgDecibels;
     _startingLocation = _endLocation;
     _endLocation = null;
     _center = null;
-    _avgDecibels = _decibelSum / _counter;
   }
 
   String? get username => _username;
