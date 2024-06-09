@@ -32,7 +32,11 @@ class SharedState extends ChangeNotifier {
   double _counter = 0;
   double? _avgDecibels;
   double? _radius;
-  double _range = 0; // 0 = <=50 (Green), 1 = 51 - 80 (Yellow), 2 = 80< (Red)
+  double _range = 0; // 0 = <=45 (Green), 1 = 46 - 70 (Yellow), 2 = 70< (Red)
+
+  final _lowerLim = 45;
+  final _upperLim = 70;
+
 
   Duration? _duration;
   double? _decibels;
@@ -64,9 +68,9 @@ class SharedState extends ChangeNotifier {
       for (var noise in data) {
         double noiseDecibels = noise["decibels"].toDouble();
         Color noiseColor = const Color.fromRGBO(255, 0, 0, 0.5);
-        if (noiseDecibels <= 50) {
+        if (noiseDecibels <= _lowerLim) {
           noiseColor = const Color.fromRGBO(0, 255, 0, 0.5); // Green
-        } else if (50 < noiseDecibels && noiseDecibels <= 80) {
+        } else if (_lowerLim < noiseDecibels && noiseDecibels <= _upperLim) {
           noiseColor = const Color.fromRGBO(255, 255, 0, 0.5); // Yellow
         } 
 
@@ -141,13 +145,13 @@ class SharedState extends ChangeNotifier {
         _decibelSum += decibels!;
         _counter += 1;
 
-        if (_counter == 100) {
+        if (_counter >= 100 && _counter <= 105) {
           range = _avgDecibels;
         }
 
-        // After about 1 min of recording it starts comparing average to the predicted range
+        // After about 30 sec of recording it starts comparing average to the predicted range
         // If average exceeds range or current range has been recording for about 15 mins it will execute the code
-        if ((isOutOfRange(_decibelSum / _counter) && _counter >= 600) || _counter >= 9000) {
+        if ((isOutOfRange(_decibelSum / _counter) && _counter >= 300) || _counter >= 9000) {
           configVariables();
         }
 
@@ -247,9 +251,9 @@ class SharedState extends ChangeNotifier {
   double get range => _range;
   set range(double? decibels) {
     if (decibels != null) {
-      if (decibels <= 50) {
+      if (decibels <= _lowerLim) {
         _range = 0; // Green
-      } else if (50 < decibels && decibels <= 80) {
+      } else if (_lowerLim < decibels && decibels <= _upperLim) {
         _range = 1; // Yellow
       } else {
         _range = 2; // Red
@@ -283,23 +287,23 @@ class SharedState extends ChangeNotifier {
   // Might need to simplify
   bool isOutOfRange(double decibels) {
     // Current ranges:
-    //  < 50dB = Green
-    // 51dB - 80dB = Yellow
-    // 81db < = Red
+    //  < 45dB = Green
+    // 46dB - 70dB = Yellow
+    // 71db < = Red
     if (range == 0) {
-      if (decibels > 50) {
+      if (decibels > _lowerLim) {
         return true;
       } else {
         return false;
       }
     } else if (range == 1) {
-      if (50 >= decibels && decibels > 80) {
+      if (_lowerLim >= decibels && decibels > _upperLim) {
         return true;
       } else {
         return false;
       }
     } else if (range == 2) {
-      if (80 >= decibels) {
+      if (_upperLim >= decibels) {
         return true;
       } else {
         return false;
