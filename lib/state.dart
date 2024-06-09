@@ -152,15 +152,14 @@ class SharedState extends ChangeNotifier {
           range = _avgDecibels;
         }
 
+        _avgDecibels = _decibelSum / _subCounter;
+
         // After about 30 sec of recording it starts comparing average to the predicted range
         // If average exceeds range or current range has been recording for about 15 mins it will execute the code
-        if ((isOutOfRange(_decibelSum / _subCounter) && _counter >= 300) || _counter >= 9000) {
+        if ((isOutOfRange(_avgDecibels!) && _counter >= 300) || _counter >= 9000) {
           configVariables();
         } else {
-          _avgDecibels = _decibelSum / _subCounter;
-
           if (_subCounter >= 150) {
-            _avgDecibels ??= _decibelSum / _subCounter;
             _subCounter = 1;
             _decibelSum = _avgDecibels!;
           }
@@ -188,8 +187,9 @@ class SharedState extends ChangeNotifier {
     await _recorder.stopRecorder();
     await _recorder.closeRecorder();
 
+    _avgDecibels = _decibelSum / _subCounter;
     configVariables();
-    _avgDecibels = null;
+    
 
     /* Old way:
     String? dataString = await dataToString(maxDecibelsLocation, maxDecibels);
@@ -214,14 +214,13 @@ class SharedState extends ChangeNotifier {
     double longDist = (_startingLocation!.longitude - _endLocation!.longitude).abs();
     _radius = sqrt((latDist*latDist) + (longDist*longDist)) / 2;
 
-    _avgDecibels ??= (_decibelSum / _subCounter) - 1;
     String? dataString = dataToString(center, avgDecibels, radius, id);
     if (dataString != null) {
       sendData("noise/updates", dataString);
     }
 
     // Reset values
-    _avgDecibels = _decibelSum / _subCounter;
+    //_avgDecibels = _decibelSum / _subCounter;
     _decibelSum = 0;
     _counter = 0;
     _subCounter = 0;
@@ -229,6 +228,7 @@ class SharedState extends ChangeNotifier {
     _startingLocation = _endLocation;
     _endLocation = null;
     _center = null;
+    _avgDecibels = null;
   }
 
   String? get username => _username;
