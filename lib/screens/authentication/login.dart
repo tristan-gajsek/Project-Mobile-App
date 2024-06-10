@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final usernameController = TextEditingController();
   final passwordController = TextEditingController();
   File ? selectedImage;
+  bool _isLoading = false; // Variable to track loading state
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +33,9 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Text("Login"),
         ),
       ),
-      body: Column(
+      body: _isLoading
+        ? Center(child: CircularProgressIndicator())
+      :Column(
         children: [
           CustomTextField(
             controller: usernameController,
@@ -70,7 +73,7 @@ class _LoginScreenState extends State<LoginScreen> {
               var sharedState = Provider.of<SharedState>(
                 context,
                 listen: false,
-              );
+              ); 
 
               // Call the CameraScreen and wait for it to finish
               File ? selectedImage = await Navigator.push(
@@ -121,7 +124,77 @@ class _LoginScreenState extends State<LoginScreen> {
                     "OK",
                   );
                 }
+              }  
+            },
+          ),
+                    CustomButton(
+            text: "Log in without Face-ID",
+            onPressed: () async {
+              if (usernameController.text.isEmpty ||
+                  passwordController.text.isEmpty) {
+                showCustomDialog(
+                  context,
+                  "Login Failed",
+                  "Make sure to fill out everything.",
+                  "OK",
+                );
+                return;
               }
+
+              var sharedState = Provider.of<SharedState>(
+                context,
+                listen: false,
+              );
+
+              setState(() {
+                _isLoading = true;
+              });    
+
+              // Call the CameraScreen and wait for it to finish
+              File ? selectedImage = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CameraScreen(),
+                ),
+              );
+
+              final response = await sharedState.httpClient.post(
+                Uri.parse("http://${sharedState.backendIp}:3001/users/login"),
+                headers: {"Content-Type": "application/json; charset=UTF-8"},
+                body: jsonEncode({
+                  "username": usernameController.text,
+                  "password": passwordController.text,
+                }),
+              );
+
+              if (response.statusCode == 200) {
+              final data = jsonDecode(response.body);
+                if (data["_id"] != null) {
+                  sharedState.email = data["email"];
+                  sharedState.username = data["username"];
+                  sharedState.id = data["_id"];
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
+                  );
+                  return;
+                }
+              } else {
+                  usernameController.clear();
+                  passwordController.clear();
+                  showCustomDialog(
+                    context,
+                    "Login Failed",
+                    "Username or password was incorrect.",
+                    "OK",
+                  );
+                }
+
+              setState(() {
+                _isLoading = false;
+              });    
             },
           ),
         ],
